@@ -1,0 +1,6 @@
+*.java
+*.class
+*Parser*
+*.o
+*.tokens
+*.interp

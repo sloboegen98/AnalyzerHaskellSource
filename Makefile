@@ -3,13 +3,25 @@ GRUN    = java -Xmx500M -cp "/usr/local/lib/antlr-4.7.1-complete.jar:$(CLASSPATH
 GRAMMAR = Data
 TEST 	= file.txt
 ROOT	= file
+LIBPATH = -L/usr/local/lib
+LINK 	= -lantlr4-runtime
+INCLUDE = -I/usr/local/include/antlr4-runtime 
 
 all: antlr compile
 
 antlr:
-	$(ANTLR) ${GRAMMAR}".g4" -no-listener
+	$(ANTLR) -Dlanguage=Cpp src/${GRAMMAR}".g4" -no-listener
+
 compile:
-	javac ${GRAMMAR}*.java 
+	g++ src/*.cpp src/printer/*.cpp -g $(INCLUDE) $(LINK) $(LIBPATH) -std=c++17 -o parsertestexe
 
 grun:
 	$(GRUN) $(GRAMMAR) $(ROOT) -gui $(TEST) 
+
+test: 
+	.test/run.sh
+
+clean:
+	rm -rf tree.dot src/Data*.cpp src/Data*.h result/
+
+.PHONY: all clean test

@@ -1,6 +1,11 @@
 *.java
 *.class
 *Parser*
+*Lexer*
 *.o
 *.tokens
 *.interp
+parsertestexe
+tree.dot
+result/
+src/.antlr

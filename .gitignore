@@ -2,6 +2,7 @@
 *.class
 *Parser*
 *Lexer*
+!Lexer.g4
 *.o
 *.tokens
 *.interp

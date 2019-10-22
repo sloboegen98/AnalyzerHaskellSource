@@ -19,10 +19,12 @@ statement
 	;
 
 simpleStatement
-	: { if (groups.size() == num_groups) groups.push_back({}); } LEGIT { groups[num_groups].push_back($LEGIT.text); } LEGIT* NEWLINE ;
+	: { if (groups.size() == num_groups) groups.push_back({}); } 
+	LEGIT { groups[num_groups].push_back($LEGIT.text); } LEGIT* NEWLINE ;
 
 blockStatements
-	: { if (groups.size() == num_groups) groups.push_back({}); } LEGIT { groups[num_groups].push_back($LEGIT.text); } LEGIT* NEWLINE INDENT statement+ DEDENT ;
+	: { if (groups.size() == num_groups) groups.push_back({}); } 
+	LEGIT { groups[num_groups].push_back($LEGIT.text); } LEGIT* NEWLINE INDENT statement+ DEDENT ;
 
 // BlockComment : '/*' ( BlockComment | . )*? '*/' -> channel(HIDDEN) ;   // allow nesting comments
 // LineComment : '--' ~[\r\n]* -> channel(HIDDEN) ;

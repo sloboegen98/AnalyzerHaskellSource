@@ -45,7 +45,7 @@ int main(int argc, char *argv[]) {
     parser.addErrorListener(&errorListner);
     try {
         antlr4::tree::ParseTree* tree = parser.script();
-        std::cout << tree->toStringTree(&parser) << std::endl;
+        // std::cerr << tree->toStringTree(&parser) << std::endl;
         DotPrinter::print(tree, "tree.dot", "");
 
         for (int i = 0; i < parser.num_groups; i++) {

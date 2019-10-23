@@ -19,7 +19,7 @@ grun:
 	$(GRUN) $(GRAMMAR) $(ROOT) -gui $(TEST) 
 
 test: 
-	.test/run.sh
+	./test/run.sh
 
 clean:
 	rm -rf tree.dot src/Data*.cpp src/Data*.h result/

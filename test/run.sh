@@ -1,17 +1,17 @@
-#! /bin/bash
+#!/bin/bash
 
-program = $1
+# program = $1
 
 mkdir -p result
 
-for t in $(ls test/in/*); do
-    num = ${t#"test/in/in"}
-    out = "test/out/out"$num
-    ans = "result/ans"$num
+for t in $(ls test/in/in*); do
+    num=${t#"test/in/in"}
+    out="test/out/out"$num
+    ans="result/ans"$num
 
-    $(program) <$t >$ans
+    ./parsertestexe $t >$ans
 
-    if cmp -s $ans $out; then
+    if cmp $ans $out; then
         echo "Ok: $t"
         rm $ans
     else 

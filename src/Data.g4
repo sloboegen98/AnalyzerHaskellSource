@@ -20,13 +20,13 @@ statement
 
 simpleStatement
 	: { if (groups.size() == num_groups) groups.push_back({}); } 
-	LEGIT { groups[num_groups].push_back($LEGIT.text); } LEGIT* NEWLINE ;
+	LEGIT { if (groups[num_groups].size() == 0) groups[num_groups].push_back($LEGIT.text); } LEGIT* NEWLINE ;
 
 blockStatements
 	: { if (groups.size() == num_groups) groups.push_back({}); } 
-	LEGIT { groups[num_groups].push_back($LEGIT.text); } LEGIT* NEWLINE INDENT statement+ DEDENT ;
+	LEGIT { if (groups[num_groups].size() == 0) groups[num_groups].push_back($LEGIT.text); } LEGIT* NEWLINE INDENT statement+ DEDENT ;
 
 // BlockComment : '/*' ( BlockComment | . )*? '*/' -> channel(HIDDEN) ;   // allow nesting comments
 // LineComment : '--' ~[\r\n]* -> channel(HIDDEN) ;
 
-LEGIT : [a-z]+;
+LEGIT : [a-z]+ | '=' | DIGIT | '+' | '-' | '*' | '/';

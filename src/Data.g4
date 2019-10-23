@@ -28,5 +28,3 @@ blockStatements
 
 // BlockComment : '/*' ( BlockComment | . )*? '*/' -> channel(HIDDEN) ;   // allow nesting comments
 // LineComment : '--' ~[\r\n]* -> channel(HIDDEN) ;
-
-LEGIT : [a-z]+ | '=' | DIGIT | '+' | '-' | '*' | '/';

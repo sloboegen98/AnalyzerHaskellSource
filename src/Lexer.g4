@@ -95,9 +95,11 @@ lexer grammar Lexer;
     }
 }
 
-fragment UPPER   : [a-z];
-fragment LOWER   : [A-Z];
+fragment UPPER   : [A-Z];
+fragment LOWER   : [a-z];
 fragment DIGIT   : [0-9];
+
+LEGIT : LOWER+;
 
 NEWLINE : ('\r'? '\n' | '\r') {
     if (pendingDent) { setChannel(HIDDEN); }

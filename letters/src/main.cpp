@@ -41,11 +41,11 @@ int main(int argc, char *argv[]) {
     // }
     
     DataParser parser(&tokens);
-    parser.removeErrorListeners();
-    parser.addErrorListener(&errorListner);
-    try {
+    // parser.removeErrorListeners();
+    // parser.addErrorListener(&errorListner);
+    // try {
         antlr4::tree::ParseTree* tree = parser.script();
-        // std::cerr << tree->toStringTree(&parser) << std::endl;
+        std::cerr << tree->toStringTree(&parser) << std::endl;
         DotPrinter::print(tree, "tree.dot", "");
 
         for (int i = 0; i < parser.num_groups; i++) {
@@ -56,9 +56,9 @@ int main(int argc, char *argv[]) {
             std::cout << std::endl;
         }
 
-        return 0;
-    } catch (std::invalid_argument &e) {
-        std::cout << e.what() << std::endl;
-        return 10;
-    }
+    //     return 0;
+    // } catch (std::invalid_argument &e) {
+    //     std::cout << e.what() << std::endl;
+    //     return 10;
+    // }
 }

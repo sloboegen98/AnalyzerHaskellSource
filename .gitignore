@@ -10,3 +10,4 @@ parsertestexe
 tree.dot
 result/
 src/.antlr
+.vscode

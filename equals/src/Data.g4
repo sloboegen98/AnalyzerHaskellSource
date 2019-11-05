@@ -14,11 +14,11 @@ module :  (clause | NEWLINE)+ EOF ;
 
 clause
 	:	
-	decl DEDENT
+	decl
 	;
 
 decl:
-	funlhs rhs
+	funlhs rhs DEDENT
 	;
 
 funlhs
@@ -28,7 +28,7 @@ funlhs
 
 rhs
 	:
-	'=' exp
+	'=' exp (WHERE decl+)?
 	;
 
 var:

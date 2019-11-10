@@ -37,6 +37,8 @@ lexer grammar Lexer;
 
     bool first_time = true;
 
+    int nested_level = 0;
+
     int getSavedIndent() { return indentStack.empty() ? 0 : indentStack.top(); }
 
     std::unique_ptr <CommonToken> 
@@ -63,10 +65,10 @@ lexer grammar Lexer;
         auto next = Lexer::nextToken();
         int st_ind = next->getStartIndex();
 
-        if (first_time) {
-            first_time = false;
-            tokenQueue.push_back(createToken(VOCURLY, "VOCURLY", st_ind));
-        }
+        // if (first_time) {
+        //     first_time = false;
+        //     tokenQueue.push_back(createToken(VOCURLY, "VOCURLY", st_ind));
+        // }
 
         std::cout << next->toString() << std::endl;
 
@@ -75,38 +77,49 @@ lexer grammar Lexer;
             && next->getType() != NEWLINE
             && next->getType() != WHERE
             && next->getType() != EOF) {
-
-            while (indentCount < getSavedIndent()) {
-                if (!indentStack.empty())
-                   indentStack.pop();
-
-                tokenQueue.push_back(createToken(SEMI, "SEMI", st_ind));                
+            
+            while (nested_level > indentStack.size()) {
+                if (nested_level > 0)
+                    nested_level--;
+                
+                tokenQueue.push_back(createToken(SEMI, "SEMI", st_ind));
                 tokenQueue.push_back(createToken(VCCURLY, "VCCURLY", st_ind));
             }
 
-            if (indentCount == getSavedIndent()) {
-                tokenQueue.push_back(createToken(VCCURLY, "VCCURLY", st_ind));
+            while (indentCount < getSavedIndent()) {
+                if (!indentStack.empty() && nested_level > 0) {
+                    indentStack.pop();
+                    nested_level--;
+                }
+
                 tokenQueue.push_back(createToken(SEMI, "SEMI", st_ind));
-                tokenQueue.push_back(createToken(VOCURLY, "VOCURLY", st_ind));
+                tokenQueue.push_back(createToken(VCCURLY, "VCCURLY", st_ind));
+            }
+            
+            if (indentCount == getSavedIndent()) {
+                std::cout << "HERE!!" << std::endl;
+                tokenQueue.push_back(createToken(SEMI, "SEMI", st_ind));
             }
 
             prev_was_endl = false;
             if (indentCount == 0) pendingDent = false;
         }
 
-        if (pendingDent && prev_was_endl
+        if (pendingDent && prev_was_where
             && indentCount > getSavedIndent()
             && next->getType() != NEWLINE
             && next->getType() != WS
             && next->getType() != EOF) {
             
-            if (prev_was_where) {
-                prev_was_where = false;
+            prev_was_where = false;
+            nested_level++;
+
+            if (prev_was_endl) {
                 indentStack.push(indentCount);
-                tokenQueue.push_back(createToken(VOCURLY, "VOCURLY", st_ind));
+                prev_was_endl = false;
             }
 
-            prev_was_endl = false;
+            tokenQueue.push_back(createToken(VOCURLY, "VOCURLY", st_ind));
         }
 
         if (pendingDent && initialIndentToken == nullptr && NEWLINE != next->getType()) {     
@@ -131,16 +144,25 @@ lexer grammar Lexer;
                 assign_next(initialIndentToken, next);
             }
 
-            while (indentCount < getSavedIndent()) {
-                if (!indentStack.empty())
-                    indentStack.pop();
-
+            while (nested_level > indentStack.size()) {
+                if (nested_level > 0)
+                    nested_level--;
+                
+                tokenQueue.push_back(createToken(SEMI, "SEMI", st_ind));
                 tokenQueue.push_back(createToken(VCCURLY, "VCCURLY", st_ind));
-                tokenQueue.push_back(createToken(SEMI, "SEMI", st_ind));                
             }
 
-            if (indentCount == getSavedIndent()) {   
+            while (indentCount < getSavedIndent()) {
+                if (!indentStack.empty() && nested_level > 0) {
+                    indentStack.pop();
+                    nested_level--;
+                }
+
+                tokenQueue.push_back(createToken(SEMI, "SEMI", st_ind));
                 tokenQueue.push_back(createToken(VCCURLY, "VCCURLY", st_ind));
+            }
+            
+            if (indentCount == getSavedIndent()) {
                 tokenQueue.push_back(createToken(SEMI, "SEMI", st_ind));
             }
 
@@ -192,40 +214,3 @@ DEDENT : 'DEDENT' { setChannel(HIDDEN); };
 VOCURLY : 'VOCURLY' { setChannel(HIDDEN); };
 VCCURLY : 'VCCURLY' { setChannel(HIDDEN); };
 SEMI    : 'SEMI'    { setChannel(HIDDEN); };
-
-
- // if (pendingDent && prev_was_endl 
-        //     && indentCount <= getSavedIndent() 
-        //     && next->getType() != NEWLINE 
-        //     && next->getType() != EOF 
-        //     && next->getType() != WHERE) {
-
-        //     while (indentCount < getSavedIndent()) {
-        //         if (!indentStack.empty())
-        //             indentStack.pop();
-        //         tokenQueue.push_back(createToken(DEDENT, "DEDENT", st_ind));
-        //     }
-
-        //     if (indentCount == getSavedIndent()) {
-        //         tokenQueue.push_back(createToken(DEDENT, "DEDENT", st_ind));
-        //     }
-
-        //     prev_was_endl = false;
-        //     if (indentCount == 0) 
-        //         pendingDent = false;
-        // }
-
-        // if (pendingDent && prev_was_endl
-        //     && indentCount > getSavedIndent()
-        //     && next->getType() != NEWLINE 
-        //     && next->getType() != WS
-        //     && next->getType() != EOF) {
-
-        //     if (prev_was_where) {
-        //         // std::cout << "WHERE: " << indentCount << std::endl;
-        //         prev_was_where = false;
-        //         indentStack.push(indentCount);
-        //     }
-            
-        //     prev_was_endl = false; 
-        // }

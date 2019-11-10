@@ -22,7 +22,17 @@ clause
 
 decl
 	:
-	VOCURLY funlhs rhs VCCURLY SEMI
+	funlhs rhs SEMI
+	;
+
+where_decls
+	:
+	VOCURLY where_decl+ VCCURLY
+	;
+
+where_decl
+	:
+	decl
 	;
 
 funlhs
@@ -32,7 +42,7 @@ funlhs
 
 rhs
 	:
-	'=' exp (WHERE decl+)?
+	'=' exp (WHERE where_decls)?
 	;
 
 var:

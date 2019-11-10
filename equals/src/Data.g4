@@ -2,8 +2,11 @@ grammar Data;
 import Lexer;
 
 @lexer::members {
-	int INDENT_TOKEN = INDENT;
-	int DEDENT_TOKEN = DEDENT;
+	int INDENT_TOKEN  = INDENT;
+	int DEDENT_TOKEN  = DEDENT;
+	int VOCURLY_TOKEN = VOCURLY;
+	int VCCURLY_TOKEN = VCCURLY;
+	int SEMI_TOKEN 	  = SEMI;
 }
 
 @parser::members {
@@ -13,17 +16,18 @@ import Lexer;
 module :  (clause | NEWLINE)+ EOF ;
 
 clause
-	:	
+	:
 	decl
 	;
 
-decl:
-	funlhs rhs DEDENT
+decl
+	:
+	VOCURLY funlhs rhs VCCURLY SEMI
 	;
 
 funlhs
 	:
-	var { functions.push_back($var.text); } apat*
+	var apat*
 	;
 
 rhs
@@ -49,3 +53,12 @@ arithmetic
 	:
 	'+' | '-' | '*' | '/'
 	;
+
+// open
+// 	:
+// 	'{' | VOCURLY
+// 	;
+// close
+// 	:
+// 	'}' | VCCURLY
+// 	;

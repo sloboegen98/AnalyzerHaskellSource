@@ -22,17 +22,17 @@ clause
 
 decl
 	:
-	funlhs rhs SEMI
+	funlhs rhs semi
 	;
 
 where_decls
 	:
-	VOCURLY where_decl+ VCCURLY
+	(where_decl semi)* where_decl semi?
 	;
 
 where_decl
 	:
-	decl
+	funlhs rhs
 	;
 
 funlhs
@@ -42,7 +42,7 @@ funlhs
 
 rhs
 	:
-	'=' exp (WHERE where_decls)?
+	'=' exp (WHERE open where_decls close)?
 	;
 
 var:
@@ -64,11 +64,19 @@ arithmetic
 	'+' | '-' | '*' | '/'
 	;
 
-// open
-// 	:
-// 	'{' | VOCURLY
-// 	;
-// close
-// 	:
-// 	'}' | VCCURLY
-// 	;
+semi
+	:
+	SEMI
+	| ';'
+	;
+
+open
+	:
+	OCURLY
+	| VOCURLY
+	;
+close
+	:
+	CCURLY
+	| VCCURLY
+	;

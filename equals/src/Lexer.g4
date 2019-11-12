@@ -35,6 +35,8 @@ lexer grammar Lexer;
     bool prev_was_endl = false;
     bool prev_was_where = false;
 
+    bool ignore_indent = false;
+
     bool first_time = true;
 
     int nested_level = 0;
@@ -65,14 +67,22 @@ lexer grammar Lexer;
         auto next = Lexer::nextToken();
         int st_ind = next->getStartIndex();
 
-        // if (first_time) {
-        //     first_time = false;
-        //     tokenQueue.push_back(createToken(VOCURLY, "VOCURLY", st_ind));
-        // }
-
         std::cout << next->toString() << std::endl;
 
+        if (prev_was_where && next->getType() == OCURLY) {
+            prev_was_where = false;
+            ignore_indent = true;
+            prev_was_endl = false;
+            nested_level--;
+        }
+
+        if (ignore_indent && (next->getType() == WHERE || next->getType() == CCURLY)) {
+            ignore_indent = false;
+            prev_was_endl = (next->getType() == WHERE);
+        }
+
         if (pendingDent && prev_was_endl
+            && !ignore_indent
             && indentCount <= getSavedIndent()
             && next->getType() != NEWLINE
             && next->getType() != WHERE
@@ -97,7 +107,6 @@ lexer grammar Lexer;
             }
             
             if (indentCount == getSavedIndent()) {
-                std::cout << "HERE!!" << std::endl;
                 tokenQueue.push_back(createToken(SEMI, "SEMI", st_ind));
             }
 
@@ -106,13 +115,13 @@ lexer grammar Lexer;
         }
 
         if (pendingDent && prev_was_where
+            && !ignore_indent
             && indentCount > getSavedIndent()
             && next->getType() != NEWLINE
             && next->getType() != WS
             && next->getType() != EOF) {
             
             prev_was_where = false;
-            nested_level++;
 
             if (prev_was_endl) {
                 indentStack.push(indentCount);
@@ -131,12 +140,20 @@ lexer grammar Lexer;
         }
 
         if (next != nullptr && next->getType() == WHERE) {
+            nested_level++; // if next will be OCURLY need to decrement nested_level
             prev_was_where = true;
+        }
+
+        if (next != nullptr && next->getType() == OCURLY) {
+            prev_was_where = false;
+        }
+
+        if (next != nullptr && next->getType() == CCURLY) {
+            // nested_level--;
         }
 
         if (next == nullptr || HIDDEN == next->getChannel() || NEWLINE == next->getType())
             return next; 
-
 
         if (next->getType() == EOF) {
             indentCount = 0;
@@ -144,10 +161,12 @@ lexer grammar Lexer;
                 assign_next(initialIndentToken, next);
             }
 
+            
             while (nested_level > indentStack.size()) {
                 if (nested_level > 0)
                     nested_level--;
-                
+
+                std::cout << nested_level << ' ' << indentStack.size() << '\n';    
                 tokenQueue.push_back(createToken(SEMI, "SEMI", st_ind));
                 tokenQueue.push_back(createToken(VCCURLY, "VCCURLY", st_ind));
             }
@@ -165,7 +184,6 @@ lexer grammar Lexer;
             if (indentCount == getSavedIndent()) {
                 tokenQueue.push_back(createToken(SEMI, "SEMI", st_ind));
             }
-
         }
 
         pendingDent = true;
@@ -189,7 +207,6 @@ DECIMAL : DIGIT+;
 
 NEWLINE : ('\r'? '\n' | '\r') {
     if (pendingDent) { setChannel(HIDDEN); }
-    // pendingDent = true;
     indentCount = 0;
     initialIndentToken = nullptr;
 } ;
@@ -207,6 +224,9 @@ WS : [ ]+ {
         indentCount += getText().length();
     }
 } ;
+
+OCURLY : '{';
+CCURLY : '}';
 
 INDENT : 'INDENT' { setChannel(HIDDEN); };
 DEDENT : 'DEDENT' { setChannel(HIDDEN); };

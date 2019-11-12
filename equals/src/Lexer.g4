@@ -11,6 +11,7 @@ lexer grammar Lexer;
 @lexer::members {
 
     typedef antlr4::CommonToken CommonToken;
+
     struct initIndent {
         int getStartIndex = 0;
         int getLine = 0;
@@ -24,7 +25,6 @@ lexer grammar Lexer;
         ptr->getLine = next->getLine();
         ptr->getCharPositionInLine = next->getCharPositionInLine();
     }
-
 
     bool pendingDent = true;
     int indentCount = 0;
@@ -55,7 +55,6 @@ lexer grammar Lexer;
         } 
         return token;
     }   
-
 
     std::unique_ptr <antlr4::Token> nextToken() override {
         if (!tokenQueue.empty()) {
@@ -166,7 +165,6 @@ lexer grammar Lexer;
                 if (nested_level > 0)
                     nested_level--;
 
-                std::cout << nested_level << ' ' << indentStack.size() << '\n';    
                 tokenQueue.push_back(createToken(SEMI, "SEMI", st_ind));
                 tokenQueue.push_back(createToken(VCCURLY, "VCCURLY", st_ind));
             }

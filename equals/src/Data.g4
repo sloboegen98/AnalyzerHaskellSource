@@ -27,7 +27,7 @@ decl
 
 where_decls
 	:
-	(where_decl semi)* where_decl semi?
+	(where_decl semi+)* where_decl semi*
 	;
 
 where_decl

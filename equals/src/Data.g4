@@ -13,6 +13,66 @@ import Lexer;
 	std::vector <std::string> functions;
 }
 
+// module 
+// 	:
+// 	body EOF
+// 	;
+
+// body 
+// 	:
+// 	topdecls+
+// 	;
+
+// topdecls
+// 	:
+// 	(topdecl | NEWLINE)+ 
+// 	;
+
+// topdecl
+// 	:
+// 	decl
+// 	;
+
+// decls
+// 	:
+// 	(decl semi+)* decl semi*
+// 	;
+
+// decl
+// 	:
+// 	funlhs rhs semi
+// 	;
+
+// funlhs
+// 	:
+// 	var apat*
+// 	;
+
+// rhs 
+// 	:
+// 	'=' exp (WHERE open decls close)?
+// 	;
+
+// semi 
+// 	:
+// 	';'
+// 	| SEMI
+// 	;
+
+// open
+// 	:
+// 	OCURLY
+// 	| VOCURLY
+// 	;
+
+// close 
+// 	:
+// 	CCURLY
+// 	| VCCURLY
+// 	;
+
+////////////////////
+
 module :  (clause | NEWLINE)+ EOF ;
 
 clause
@@ -27,7 +87,7 @@ decl
 
 where_decls
 	:
-	(where_decl semi+)* where_decl semi*
+	open (where_decl semi+)* where_decl semi* close
 	;
 
 where_decl
@@ -42,7 +102,7 @@ funlhs
 
 rhs
 	:
-	'=' exp (WHERE open where_decls close)?
+	'=' exp (WHERE where_decls)?
 	;
 
 var:

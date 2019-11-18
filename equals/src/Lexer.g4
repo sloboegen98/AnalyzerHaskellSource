@@ -11,7 +11,6 @@ lexer grammar Lexer;
 @lexer::members {
 
     typedef antlr4::CommonToken CommonToken;
-
     struct initIndent {
         int getStartIndex = 0;
         int getLine = 0;
@@ -73,6 +72,12 @@ lexer grammar Lexer;
             ignore_indent = true;
             prev_was_endl = false;
             nested_level--;
+        }
+
+        if (prev_was_where && !prev_was_endl && next->getType() == LEGIT) {
+            prev_was_where = false;
+            indentStack.push(next->getCharPositionInLine());
+            tokenQueue.push_back(createToken(VOCURLY, "VOCURLY", st_ind));
         }
 
         if (ignore_indent && (next->getType() == WHERE || next->getType() == CCURLY)) {
@@ -165,6 +170,7 @@ lexer grammar Lexer;
                 if (nested_level > 0)
                     nested_level--;
 
+                // std::cout << nested_level << ' ' << indentStack.size() << '\n';    
                 tokenQueue.push_back(createToken(SEMI, "SEMI", st_ind));
                 tokenQueue.push_back(createToken(VCCURLY, "VCCURLY", st_ind));
             }

@@ -13,29 +13,78 @@ import Lexer;
 	std::vector <std::string> functions;
 }
 
-// module 
-// 	:
-// 	body EOF
-// 	;
+module : body EOF;
 
-// body 
-// 	:
-// 	topdecls+
-// 	;
+body : (topdecls | NEWLINE)+;
 
-// topdecls
-// 	:
-// 	(topdecl | NEWLINE)+ 
-// 	;
+topdecls : topdecl;
 
-// topdecl
+topdecl : decl semi;
+
+decl 
+	: 
+	funlhs rhs
+	;
+
+decls 
+	:
+	open (decl semi+)* decl semi* close
+	;
+
+funlhs 
+	:
+	var apat*
+	;
+
+rhs 
+	: 
+	('=' exp (WHERE decls)?)
+	| (gdrhs (WHERE decls)?);
+
+gdrhs
+	:
+	guards '=' exp semi (guards '=' exp semi)*
+	;
+
+guards
+	:
+	GUARD guard (',' guard)*
+	;
+
+guard
+	:
+	exp
+	;
+
+exp	
+	:
+	(LEGIT | DECIMAL | arithmetic)+
+	;
+
+arithmetic
+	:
+	('+' | '-' | '*' | '/')
+	;
+
+var : LEGIT;
+
+apat : LEGIT;
+
+open : VOCURLY | OCURLY;
+
+close : VCCURLY | CCURLY;
+
+semi : ';' | SEMI;
+
+
+
+////////////////////
+
+// module :  (clause | NEWLINE)+ EOF ;
+
+// clause
 // 	:
 // 	decl
-// 	;
-
-// decls
-// 	:
-// 	(decl semi+)* decl semi*
 // 	;
 
 // decl
@@ -43,20 +92,49 @@ import Lexer;
 // 	funlhs rhs semi
 // 	;
 
+// where_decls
+// 	:
+// 	open (where_decl semi+)* where_decl semi* close
+// 	;
+
+// where_decl
+// 	:
+// 	funlhs rhs
+// 	;
+
 // funlhs
 // 	:
 // 	var apat*
 // 	;
 
-// rhs 
+// rhs
 // 	:
-// 	'=' exp (WHERE open decls close)?
+// 	'=' exp (WHERE where_decls)?
 // 	;
 
-// semi 
+// var:
+// 	LEGIT
+// 	;
+
+// apat
 // 	:
-// 	';'
-// 	| SEMI
+// 	LEGIT
+// 	;
+
+// exp
+// 	:
+// 	(LEGIT | DECIMAL | arithmetic)+
+// 	;
+
+// arithmetic
+// 	:
+// 	'+' | '-' | '*' | '/'
+// 	;
+
+// semi
+// 	:
+// 	SEMI
+// 	| ';'
 // 	;
 
 // open
@@ -64,79 +142,8 @@ import Lexer;
 // 	OCURLY
 // 	| VOCURLY
 // 	;
-
-// close 
+// close
 // 	:
 // 	CCURLY
 // 	| VCCURLY
 // 	;
-
-////////////////////
-
-module :  (clause | NEWLINE)+ EOF ;
-
-clause
-	:
-	decl
-	;
-
-decl
-	:
-	funlhs rhs semi
-	;
-
-where_decls
-	:
-	open (where_decl semi+)* where_decl semi* close
-	;
-
-where_decl
-	:
-	funlhs rhs
-	;
-
-funlhs
-	:
-	var apat*
-	;
-
-rhs
-	:
-	'=' exp (WHERE where_decls)?
-	;
-
-var:
-	LEGIT
-	;
-
-apat
-	:
-	LEGIT
-	;
-
-exp
-	:
-	(LEGIT | DECIMAL | arithmetic)+
-	;
-
-arithmetic
-	:
-	'+' | '-' | '*' | '/'
-	;
-
-semi
-	:
-	SEMI
-	| ';'
-	;
-
-open
-	:
-	OCURLY
-	| VOCURLY
-	;
-close
-	:
-	CCURLY
-	| VCCURLY
-	;

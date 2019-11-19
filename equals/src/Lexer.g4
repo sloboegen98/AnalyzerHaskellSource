@@ -33,6 +33,7 @@ lexer grammar Lexer;
 
     bool prev_was_endl = false;
     bool prev_was_where = false;
+    bool first_guard = true;
 
     bool ignore_indent = false;
 
@@ -67,6 +68,15 @@ lexer grammar Lexer;
 
         std::cout << next->toString() << std::endl;
 
+        if (next->getType() == GUARD && !first_guard) {
+            tokenQueue.push_back(createToken(SEMI, "SEMI", st_ind));
+        }
+
+        if (next->getType() == GUARD && first_guard) {
+            // indentStack.push(next->getCharPositionInLine());
+            first_guard = false;
+        }
+
         if (prev_was_where && next->getType() == OCURLY) {
             prev_was_where = false;
             ignore_indent = true;
@@ -91,6 +101,13 @@ lexer grammar Lexer;
             && next->getType() != NEWLINE
             && next->getType() != WHERE
             && next->getType() != EOF) {
+
+            if (!first_guard) {
+                tokenQueue.push_back(createToken(SEMI, "SEMI", st_ind));
+            }
+
+            // carefully!!!
+            first_guard = true;
             
             while (nested_level > indentStack.size()) {
                 if (nested_level > 0)
@@ -101,6 +118,7 @@ lexer grammar Lexer;
             }
 
             while (indentCount < getSavedIndent()) {
+                // std::cout << indentCount << ' ' << getSavedIndent() << '\n';
                 if (!indentStack.empty() && nested_level > 0) {
                     indentStack.pop();
                     nested_level--;
@@ -164,7 +182,6 @@ lexer grammar Lexer;
             if (!pendingDent) {
                 assign_next(initialIndentToken, next);
             }
-
             
             while (nested_level > indentStack.size()) {
                 if (nested_level > 0)
@@ -182,7 +199,14 @@ lexer grammar Lexer;
                 }
 
                 tokenQueue.push_back(createToken(SEMI, "SEMI", st_ind));
+
+                // check for where
+                // if (nested_level > 0)
                 tokenQueue.push_back(createToken(VCCURLY, "VCCURLY", st_ind));
+            }
+
+            if (!first_guard) {
+                tokenQueue.push_back(createToken(SEMI, "SEMI", st_ind));
             }
             
             if (indentCount == getSavedIndent()) {
@@ -229,6 +253,7 @@ WS : [ ]+ {
     }
 } ;
 
+GUARD  : '|';
 OCURLY : '{';
 CCURLY : '}';
 

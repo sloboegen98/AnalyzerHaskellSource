@@ -164,6 +164,7 @@ lexer grammar Lexer;
         if (next != nullptr && next->getType() == WHERE) {
             nested_level++; // if next will be OCURLY need to decrement nested_level
             prev_was_where = true;
+            prev_was_endl = false;
         }
 
         if (next != nullptr && next->getType() == OCURLY) {

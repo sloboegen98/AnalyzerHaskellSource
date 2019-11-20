@@ -1,20 +1,15 @@
 #!/bin/bash
 
-# program = $1
-
 mkdir -p result
+rm -f ans.txt
 
-for t in $(ls test/in/in*); do
-    num=${t#"test/in/in"}
-    out="test/out/out"$num
-    ans="result/ans"$num
+touch ans.txt
 
-    ./parsertestexe $t >$ans
-
-    if cmp $ans $out; then
-        echo "Ok: $t"
-        rm $ans
-    else 
-        echo "WA:$t"
-    fi
+for t in $(ls in/in*); do
+    echo ${t} >> ans.txt
+    cat ${t} >> ans.txt
+    echo >> ans.txt 
+    ./../parsertestexe $t >> ans.txt
+    echo "------------------------" >> ans.txt
+    echo >> ans.txt
 done

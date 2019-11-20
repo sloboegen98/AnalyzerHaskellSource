@@ -33,7 +33,6 @@ lexer grammar Lexer;
 
     bool prev_was_endl = false;
     bool prev_was_where = false;
-    bool first_guard = true;
 
     bool ignore_indent = false;
 
@@ -66,16 +65,7 @@ lexer grammar Lexer;
         auto next = Lexer::nextToken();
         int st_ind = next->getStartIndex();
 
-        std::cout << next->toString() << std::endl;
-
-        if (next->getType() == GUARD && !first_guard) {
-            tokenQueue.push_back(createToken(SEMI, "SEMI", st_ind));
-        }
-
-        if (next->getType() == GUARD && first_guard) {
-            // indentStack.push(next->getCharPositionInLine());
-            first_guard = false;
-        }
+        // std::cout << next->toString() << std::endl;
 
         if (prev_was_where && next->getType() == OCURLY) {
             prev_was_where = false;
@@ -102,13 +92,6 @@ lexer grammar Lexer;
             && next->getType() != WHERE
             && next->getType() != EOF) {
 
-            if (!first_guard) {
-                tokenQueue.push_back(createToken(SEMI, "SEMI", st_ind));
-            }
-
-            // carefully!!!
-            first_guard = true;
-            
             while (nested_level > indentStack.size()) {
                 if (nested_level > 0)
                     nested_level--;
@@ -200,16 +183,9 @@ lexer grammar Lexer;
                 }
 
                 tokenQueue.push_back(createToken(SEMI, "SEMI", st_ind));
-
-                // check for where
-                // if (nested_level > 0)
                 tokenQueue.push_back(createToken(VCCURLY, "VCCURLY", st_ind));
             }
 
-            if (!first_guard) {
-                tokenQueue.push_back(createToken(SEMI, "SEMI", st_ind));
-            }
-            
             if (indentCount == getSavedIndent()) {
                 tokenQueue.push_back(createToken(SEMI, "SEMI", st_ind));
             }

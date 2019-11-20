@@ -43,7 +43,7 @@ rhs
 
 gdrhs
 	:
-	guards '=' exp semi (guards '=' exp semi)*
+	guards '=' exp (guards '=' exp)*
 	;
 
 guards

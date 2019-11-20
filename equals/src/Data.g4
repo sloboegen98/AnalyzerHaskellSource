@@ -21,14 +21,35 @@ topdecls : topdecl;
 
 topdecl : decl semi;
 
-decl 
-	: 
-	funlhs rhs
-	;
-
 decls 
 	:
 	open (decl semi+)* decl semi* close
+	;
+
+decl 
+	: 
+	gendecl
+	| (funlhs rhs)
+	;
+
+gendecl	
+	:
+	fixity (DECIMAL)? ops
+	;
+
+ops
+	:
+	op (',' op)*
+	;
+
+vars
+	:
+	var (',' var)*
+	;
+
+fixity 
+	:
+	'infixl' | 'infixr' | 'infix'
 	;
 
 funlhs 
@@ -58,7 +79,18 @@ guard
 
 exp	
 	:
-	(LEGIT | DECIMAL | arithmetic)+
+	infixexp
+	| (LEGIT | DECIMAL | arithmetic)+
+	;
+
+infixexp
+	:
+	lexp
+	;
+
+lexp
+	:
+	LET decls IN exp
 	;
 
 arithmetic
@@ -69,6 +101,8 @@ arithmetic
 var : LEGIT;
 
 apat : LEGIT;
+
+op	: ('$' | '?' | '<' | '>')+; 
 
 open : VOCURLY | OCURLY;
 

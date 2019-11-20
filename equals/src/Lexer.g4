@@ -5,6 +5,7 @@ lexer grammar Lexer;
     #include <stack>
     #include <memory>
     #include <vector>
+    #include <utility>
     #include <string>
 }
 
@@ -28,8 +29,9 @@ lexer grammar Lexer;
     bool pendingDent = true;
     int indentCount = 0;
     std::list < std::unique_ptr<antlr4::Token> > tokenQueue;
-    std::stack <int> indentStack;
+    std::stack <std::pair <std::string, int> > indentStack;
     initIndent* initialIndentToken = nullptr;
+    std::string last_key_word;
 
     bool prev_was_endl = false;
     bool prev_was_where = false;
@@ -40,7 +42,7 @@ lexer grammar Lexer;
 
     int nested_level = 0;
 
-    int getSavedIndent() { return indentStack.empty() ? 0 : indentStack.top(); }
+    int getSavedIndent() { return indentStack.empty() ? 0 : indentStack.top().second; }
 
     std::unique_ptr <CommonToken> 
     createToken(int type, std::string text, int start_ind) {
@@ -76,7 +78,7 @@ lexer grammar Lexer;
 
         if (prev_was_where && !prev_was_endl && next->getType() == LEGIT) {
             prev_was_where = false;
-            indentStack.push(next->getCharPositionInLine());
+            indentStack.push({last_key_word, next->getCharPositionInLine()});
             tokenQueue.push_back(createToken(VOCURLY, "VOCURLY", st_ind));
         }
 
@@ -101,7 +103,6 @@ lexer grammar Lexer;
             }
 
             while (indentCount < getSavedIndent()) {
-                // std::cout << indentCount << ' ' << getSavedIndent() << '\n';
                 if (!indentStack.empty() && nested_level > 0) {
                     indentStack.pop();
                     nested_level--;
@@ -129,7 +130,7 @@ lexer grammar Lexer;
             prev_was_where = false;
 
             if (prev_was_endl) {
-                indentStack.push(indentCount);
+                indentStack.push({last_key_word, indentCount});
                 prev_was_endl = false;
             }
 
@@ -144,18 +145,16 @@ lexer grammar Lexer;
             prev_was_endl = true;
         }
 
-        if (next != nullptr && next->getType() == WHERE) {
+        if (next->getType() == WHERE
+            || next->getType() == LET) {
             nested_level++; // if next will be OCURLY need to decrement nested_level
             prev_was_where = true;
             prev_was_endl = false;
+            last_key_word = next->getText();
         }
 
         if (next != nullptr && next->getType() == OCURLY) {
             prev_was_where = false;
-        }
-
-        if (next != nullptr && next->getType() == CCURLY) {
-            // nested_level--;
         }
 
         if (next == nullptr || HIDDEN == next->getChannel() || NEWLINE == next->getType())
@@ -193,6 +192,23 @@ lexer grammar Lexer;
 
         pendingDent = true;
 
+        if (next->getType() == IN) {
+            if (indentStack.empty()) std::cout << "BAD!!!\n";
+            while (((indentStack.top()).first) != "let") {
+                tokenQueue.push_back(createToken(SEMI, "SEMI", st_ind));
+                tokenQueue.push_back(createToken(VCCURLY, "VCCURLY", st_ind));
+                nested_level--;
+                indentStack.pop();
+            }
+
+            if ((indentStack.top()).first == "let") {
+                tokenQueue.push_back(createToken(SEMI, "SEMI", st_ind));
+                tokenQueue.push_back(createToken(VCCURLY, "VCCURLY", st_ind));
+                nested_level--;
+                indentStack.pop();
+            }
+        }
+
         tokenQueue.push_back(std::move(next));
         auto p = std::move(tokenQueue.front());
         tokenQueue.pop_front();
@@ -206,6 +222,13 @@ fragment LOWER   : [a-z];
 fragment DIGIT   : [0-9];
 
 WHERE : 'where';
+LET   : 'let'  ;
+IN    : 'in'   ;
+
+IF    : 'if'   ;
+THEN  : 'then' ;
+ELSE  : 'else' ;
+
 
 LEGIT : LOWER+;
 DECIMAL : DIGIT+;

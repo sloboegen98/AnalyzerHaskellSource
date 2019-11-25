@@ -126,7 +126,7 @@ lexer grammar Lexer;
             nested_level--;
         }
 
-        if (prev_was_keyword && !prev_was_endl && next->getType() == LEGIT) {
+        if (prev_was_keyword && !prev_was_endl && next->getType() == VARID || next->getType() == CONID) {
             prev_was_keyword = false;
             indentStack.push({last_key_word, next->getCharPositionInLine()});
             tokenQueue.push_back(createToken(VOCURLY, "VOCURLY", st_ind));
@@ -229,8 +229,8 @@ lexer grammar Lexer;
     }
 }
 
-fragment UPPER   : [A-Z];
-fragment LOWER   : [a-z];
+fragment LARGE   : [A-Z];
+fragment SMALL   : [a-z];
 fragment DIGIT   : [0-9];
 
 WHERE : 'where';
@@ -243,10 +243,6 @@ OF    : 'of'   ;
 IF    : 'if'   ;
 THEN  : 'then' ;
 ELSE  : 'else' ;
-
-
-LEGIT : LOWER+;
-DECIMAL : DIGIT+;
 
 NEWLINE : ('\r'? '\n' | '\r') {
     if (pendingDent) { setChannel(HIDDEN); }
@@ -268,13 +264,63 @@ WS : [ ]+ {
     }
 } ;
 
-GUARD  : '|';
+// GUARD  : '|';
 OCURLY : '{';
 CCURLY : '}';
-
-INDENT : 'INDENT' { setChannel(HIDDEN); };
-DEDENT : 'DEDENT' { setChannel(HIDDEN); };
 
 VOCURLY : 'VOCURLY' { setChannel(HIDDEN); };
 VCCURLY : 'VCCURLY' { setChannel(HIDDEN); };
 SEMI    : 'SEMI'    { setChannel(HIDDEN); };
+
+
+// LITERAL : INTEGER | FLOAT | CHAR | STRING;
+
+// fragment SPECIAL : '(' | ')' | ',' | ';' | '[' | ']' | '`' | '{' | '}' ;
+
+// COMMENT : DASHES (ANY~SYMBOL (ANY)*)? NEWLINE;
+DASHES  : '--' ('-')*;
+// OPENCOM : '{-';
+// CLOSECOM: '-}';
+// NCOMMENT: OPENCOM ANYSEQ CLOSECOM -> channel(HIDDEN);
+
+// ANYSEQ  : (ANY)* ~(OPENCOM | CLOSECOM)
+// ANY     : 
+
+SYMBOL  : '$' | '!' | '^';
+
+VARID   : SMALL (SMALL | LARGE | DIGIT | '\'')*;
+CONID   : LARGE (SMALL | LARGE | DIGIT | '\'')*;
+// fragment RESERVEDID :
+//         'case' | 'class' | 'data' | 'default' 
+//         | 'deriving' | 'do' | 'else' | 'foreign'
+//         | 'if' | 'import' | 'in' | 'infix' 
+//         | 'infix' | 'infixl' | 'infixr'
+//         | 'instance' | 'let' | 'module' | 'newtype'
+//         | 'of' | 'then' | 'type' | 'where' | '_'
+//         ;
+
+VARSYM  : SYMBOL~[:] (SYMBOL)*;
+CONSYM  : (':' (SYMBOL)*);
+fragment RESERVEDOP : '..' | ':' | '::' | '=' | '\\' | '|' 
+            | '<-' | '@' | '~' | '=>'
+            ;
+
+TYVAR : VARID;
+TYCON : CONID;
+TYCLS : CONID;
+MODID : (CONID '.')* CONID;
+
+QVARID  : (MODID '.')? VARID ;
+QCONID  : (MODID '.')? CONID ;
+QTYCON  : (MODID '.')? TYCON ;
+QTYCLS  : (MODID '.')? TYCLS ; 
+QVARSYM : (MODID '.')? VARSYM;
+QCONSYM : (MODID '.')? CONSYM;
+
+DECIMAL : DIGIT+;
+
+INTEGER : DECIMAL;
+
+FLOAT: (DECIMAL '.' DECIMAL (EXPONENT)?) | (DECIMAL EXPONENT);
+
+EXPONENT : [eE] [+-]? DECIMAL;

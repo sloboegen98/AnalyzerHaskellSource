@@ -2,8 +2,6 @@ grammar Data;
 import Lexer;
 
 @lexer::members {
-	int INDENT_TOKEN  = INDENT;
-	int DEDENT_TOKEN  = DEDENT;
 	int VOCURLY_TOKEN = VOCURLY;
 	int VCCURLY_TOKEN = VCCURLY;
 	int SEMI_TOKEN 	  = SEMI;
@@ -17,9 +15,17 @@ module : body EOF;
 
 body : (topdecls | NEWLINE)+;
 
-topdecls : topdecl;
+topdecls : topdecl semi;
 
-topdecl : decl semi;
+topdecl : 
+	// ('type' simpletype '=' type)
+   ('data' (context '=>')? simpletype ('=' constrs)? deriving?)
+	// | ('newtype' (context '=>')? simpletype '=' newconstr ('deriving')?)
+	// | ('class' (scontext '=>')? tycls tyvar ('where' cdecls)?)
+	// | ('instance' (scontext '=>')? QTYCLS inst ('where' idecls)?)
+	// | ('default' ( type (',' type)* ))
+	// | ('foreign' fdecl)
+	| (decl);
 
 decls 
 	:
@@ -29,12 +35,34 @@ decls
 decl 
 	: 
 	gendecl
-	| (funlhs rhs)
+	| ((funlhs | pat) rhs)
+	;
+
+cdecls
+	:
+	open (cdecl semi+)* cdecl semi* close
+	;
+
+cdecl
+	:
+	gendecl
+	| ((funlhs | var) rhs)
+	;
+
+idecls
+	:
+	open (idecl semi+)* idecl semi* close
+	;
+
+idecl
+	:
+	(funlhs | var) rhs
 	;
 
 gendecl	
 	:
-	fixity (DECIMAL)? ops
+	vars '::' (context '=>')? type
+	| (fixity (DECIMAL)? ops)
 	;
 
 ops
@@ -52,39 +80,125 @@ fixity
 	'infixl' | 'infixr' | 'infix'
 	;
 
+type
+	:
+	btype ('->' type)?
+	;
+	
+btype
+	:
+	atype+
+	;
+
+atype
+	:
+	gtycon
+	| TYVAR
+	| ( '(' type (',' type)* ')' )
+	| ( '[' type ']' )
+	| ( '(' type ')' )
+	;
+
+gtycon
+	:
+	QTYCON
+	| ( '(' ')' )
+	| ( '[' ']' )
+	| ( '(' '->' ')' )
+	| ( '(' ',' '{' ',' '}' ')' )
+	;
+
+context
+	:
+	cls
+	| ( '(' cls (',' cls)* ')' )
+	;
+
+cls
+	:
+	(QTYCLS TYVAR)
+	| ( QTYCLS '(' TYVAR (atype (',' atype)*) ')' )
+	;
+
+scontext
+	:
+	'(' simpleclass (',' simpleclass)* ')'
+	;
+
+simpleclass
+	:
+	QTYCLS TYVAR
+	;
+
+simpletype
+	:
+	TYCON TYVAR*
+	;
+
+constrs
+	:
+	constr ('|' constr)*
+	;
+
+constr
+	:
+	(con ('!'? atype)*)
+	| ((btype | ('!' atype)) conop (btype | ('!' atype)))
+	| (con '{' (fielddecl (',' fielddecl)* )? '}')
+	;
+
+fielddecl
+	:
+	vars '::' (type | ('!' atype))
+	;
+
+deriving
+	:
+	'deriving' (dclass | ('(' (dclass (',' dclass)*)? ')' ))
+	;
+
+dclass
+	:
+	QTYCLS
+	;
+
 funlhs 
 	:
-	var apat*
+	(var apat+)
+	| (pat varop pat)
+	| ( '(' funlhs ')' apat+)
 	;
 
 rhs 
 	: 
-	('=' exp (WHERE decls)?)
-	| (gdrhs (WHERE decls)?);
+	('=' exp ('where' decls)?)
+	| (gdrhs ('where' decls)?);
 
 gdrhs
 	:
-	guards '=' exp (guards '=' exp)*
+	(guards '=' exp)+
 	;
 
 guards
 	:
-	GUARD guard (',' guard)*
+	'|' guard (',' guard)*
 	;
 
 guard
 	:
-	exp
+	infixexp
 	;
 
 exp	
 	:
-	infixexp
-	| (LEGIT | DECIMAL | arithmetic)+
+	// infixexp
+	(VARID | CONID | DECIMAL | arithmetic)+
 	;
 
 infixexp
 	:
+	// (lexp qop infixexp)
+	// | ('-' infixexp)
 	lexp
 	;
 
@@ -93,23 +207,62 @@ lexp
 	LET decls IN exp
 	;
 
+pat
+	:
+	(lpat qconop pat)
+	| lpat
+	;
+
+lpat
+	:
+	apat
+	| ('-' (INTEGER | FLOAT))
+	| (gcon apat+)
+	;
+
+apat 
+	:
+	(var ('@' apat)?)
+	| gcon
+	// | (qocn '{' (fpat (',' fpat)*)? '}')
+	// | literal
+	| '_'
+	| ('(' pat ')')
+	| ('(' pat ',' pat (',' pat)* ')')
+	| ('[' pat (',' pat)* ']')
+	| ('~'apat) 
+	;
+
+gcon
+	:
+	('(' ')')
+	;
+
+// fpat
+// 	:
+// 	qvar '=' pat
+// 	;
+
 arithmetic
 	:
 	('+' | '-' | '*' | '/')
 	;
 
-var : LEGIT;
-
-apat : LEGIT;
-
-op	: ('$' | '?' | '<' | '>')+; 
+var	: VARID | ( '(' VARSYM ')' );
+qvar: QVARID| ( '(' QVARSYM ')');
+con : CONID | ( '(' CONSYM ')' );
+qcon: QCONID| ( '(' gconsym ')');
+varop: QVARSYM | ('`' VARID '`');
+qvarop: QVARSYM | ('`' QVARID '`');
+conop: CONSYM | ('`' CONID '`');
+qconop: gconsym | ('`' QCONID '`');
+op: varop | conop;
+qop: qvarop | qconop;
+gconsym: ':' | QCONSYM;
 
 open : VOCURLY | OCURLY;
-
 close : VCCURLY | CCURLY;
-
 semi : ';' | SEMI;
-
 
 
 ////////////////////

@@ -1,4 +1,5 @@
 f a = 
     let 
         k a = a + 1 
-    in k a
+        g a = a + 2
+ in k a + g a

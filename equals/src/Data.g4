@@ -20,7 +20,7 @@ topdecls : topdecl semi;
 topdecl : 
 	(TYPE simpletype '=' type)
     | (DATA (context '=>')? simpletype ('=' constrs)? deriving?)
-	// | (Newtype (context '=>')? simpletype '=' newconstr deriving?)
+	| (NEWTYPE (context '=>')? simpletype '=' newconstr deriving?)
 	// | (Class (scontext '=>')? tycls tyvar ('where' cdecls)?)
 	// | (Instance (scontext '=>')? qtycls inst ('where' idecls)?)
 	// | (Default ( type (',' type)* ))
@@ -131,20 +131,26 @@ simpleclass
 	;
 
 simpletype
-	:
+	: 
 	tycon tyvar*
 	;
 
 constrs
-	:
+	: 
 	constr ('|' constr)*
 	;
 
 constr
-	:
+	: 
 	(con ('!'? atype)*)
 	| ((btype | ('!' atype)) conop (btype | ('!' atype)))
 	| (con '{' (fielddecl (',' fielddecl)* )? '}')
+	;
+
+newconstr
+	:
+	(con atype)
+	| (con '{' var '::' type '}')
 	;
 
 fielddecl
@@ -304,14 +310,14 @@ ascSymbol: ASCSYMBOL;
 //         | '.' | '/' | '<' | '=' | '>' | '?' | '@' 
 //         | '\\' | '^' | '|' | '-' | '~' | ':' ; 
 
-reservedid : 
-		'case' | 'class' | 'data' | 'default' 
-        | 'deriving' | 'do' | 'else' | 'foreign'
-        | 'if' | 'import' | 'in' | 'infix' 
-        | 'infix' | 'infixl' | 'infixr'
-        | 'instance' | 'let' | 'module' | 'newtype'
-        | 'of' | 'then' | 'type' | 'where' | '_'
-        ;
+// reservedid : 
+// 		'case' | 'class' | 'data' | 'default' 
+//         | 'deriving' | 'do' | 'else' | 'foreign'
+//         | 'if' | 'import' | 'in' | 'infix' 
+//         | 'infix' | 'infixl' | 'infixr'
+//         | 'instance' | 'let' | 'module' | 'newtype'
+//         | 'of' | 'then' | 'type' | 'where' | '_'
+//         ;
 
 // graphic : SMALL | LARGE | DIGIT | symbol | special; 
 

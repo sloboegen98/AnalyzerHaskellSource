@@ -18,8 +18,8 @@ body : (topdecls | NEWLINE)+;
 topdecls : topdecl semi;
 
 topdecl : 
-	// (Type simpletype '=' type)
-   (DATA (context '=>')? simpletype ('=' constrs)? deriving?)
+	(TYPE simpletype '=' type)
+    | (DATA (context '=>')? simpletype ('=' constrs)? deriving?)
 	// | (Newtype (context '=>')? simpletype '=' newconstr deriving?)
 	// | (Class (scontext '=>')? tycls tyvar ('where' cdecls)?)
 	// | (Instance (scontext '=>')? qtycls inst ('where' idecls)?)

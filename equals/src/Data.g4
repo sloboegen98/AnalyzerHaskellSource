@@ -23,8 +23,8 @@ topdecl :
 	| (NEWTYPE (context '=>')? simpletype '=' newconstr deriving?)
 	| (CLASS (scontext '=>')? tycls tyvar (WHERE cdecls)?)
 	| (INSTANCE (scontext '=>')? qtycls inst (WHERE idecls)?)
-	| (DEFAULT ( type (',' type)* ))
-	// | (Foreign fdecl)
+	| (DEFAULT '(' (type (',' type)*)? ')' )
+	| (FOREIGN fdecl)
 	| decl;
 
 decls 

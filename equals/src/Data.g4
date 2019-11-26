@@ -223,7 +223,7 @@ infixexp
 
 lexp
 	:
-	// ('\\' apat+ '->' exp)
+	('\\' apat+ '->' exp)
 	| (LET decls IN exp)
 	| (IF exp ';'? THEN exp ';'? ELSE exp)
 	// | (CASE exp OF )

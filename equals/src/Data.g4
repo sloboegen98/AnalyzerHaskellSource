@@ -24,7 +24,7 @@ topdecl :
 	| (CLASS (scontext '=>')? tycls tyvar (WHERE cdecls)?)
 	| (INSTANCE (scontext '=>')? qtycls inst (WHERE idecls)?)
 	| (DEFAULT '(' (type (',' type)*)? ')' )
-	| (FOREIGN fdecl)
+	// | (FOREIGN fdecl)
 	| decl;
 
 decls 
@@ -202,25 +202,66 @@ guards
 
 guard
 	:
-	infixexp
+	pat '<-' infixexp
+	| LET decls
+	| infixexp
 	;
 
 exp	
 	:
-	// infixexp
-	(varid | conid | DECIMAL | arithmetic)+
+	(infixexp '::' (context '=>')? type)
+	| infixexp 
+	// | (varid | conid | DECIMAL | '+' | '-' | '*' )+
 	;
 
 infixexp
 	:
-	// (lexp qop infixexp)
-	// | ('-' infixexp)
-	lexp
+	(lexp qop infixexp)
+	| ('-' infixexp)
+	| lexp
 	;
 
 lexp
 	:
-	LET decls IN exp
+	// ('\\' apat+ '->' exp)
+	| (LET decls IN exp)
+	| (IF exp ';'? THEN exp ';'? ELSE exp)
+	// | (CASE exp OF )
+	// | (DO stmts)
+	| fexp
+	;
+
+fexp
+	:
+	aexp+
+	;
+
+aexp 
+	:
+	qvar
+	| gcon
+	| literal
+	| ( '(' exp ')' )
+	| ( '(' exp ',' exp (',' exp)* ')' )
+	| ( '[' exp (',' exp)* ']' )
+	| ( '[' exp (',' exp)? '..' (',' exp)? ']' )
+	| ( '[' exp '|' qual (',' qual)* ']' )
+	| ( '(' infixexp qop ')' )
+	| ( '(' qop infixexp ')' )    // qop ~ [-] ?????????
+	| ( qcon '{' (fbind (',' fbind))? '}' )
+	| ('{' fbind (',' fbind)* '}')+ // aexp {fbind+} ???
+	;
+
+qual 
+	:
+	(pat '<-' exp)
+	| (LET decls)
+	| exp
+	;
+
+fbind
+	:
+	qvar '=' exp	
 	;
 
 pat
@@ -232,7 +273,7 @@ pat
 lpat
 	:
 	apat
-	| ('-' (INTEGER | FLOAT))
+	| ('-' (integer | pfloat))
 	| (gcon apat+)
 	;
 
@@ -240,13 +281,18 @@ apat
 	:
 	(var ('@' apat)?)
 	| gcon
-	// | (qocn '{' (fpat (',' fpat)*)? '}')
-	// | literal
+	| (qcon '{' (fpat (',' fpat)*)? '}')
+	| literal
 	| '_'
 	| ('(' pat ')')
 	| ('(' pat ',' pat (',' pat)* ')')
 	| ('[' pat (',' pat)* ']')
 	| ('~'apat) 
+	;
+
+fpat
+	:
+	qvar '=' pat
 	;
 
 gcon
@@ -255,16 +301,6 @@ gcon
 	| ('[' ']')
 	| ('(' (',')+ ')')
 	| qcon
-	;
-
-// fpat
-// 	:
-// 	qvar '=' pat
-// 	;
-
-arithmetic
-	:
-	('+' | '-' | '*' | '/')
 	;
 
 var	:    varid   | ( '(' varsym ')' );
@@ -283,32 +319,10 @@ open : VOCURLY | OCURLY;
 close : VCCURLY | CCURLY;
 semi : ';' | SEMI;
 
-// Case    : CASE    ;
-// Class   : CLASS   ;
-// Data    : DATA    ;
-// Default : DEFAULT ;
-// Deriving: DERIVING;
-// Do      : DO	  ;
-// Else    : ELSE    ;
-// Foreign : FOREIGN ;
-// If      : IF      ;
-// Import  : IMPORT  ;
-// In      : IN      ;
-// Infix   : INFIX   ;
-// Infixl  : INFIXL  ;
-// Infixr  : INFIXR  ;
-// Instance: INSTANCE;
-// Let     : LET	  ;
-// Module  : MODULE  ;
-// Newtype : NEWTYPE ;
-// Of      : OF	  ;
-// Then    : THEN    ;
-// Type    : TYPE    ;
-// Where   : WHERE   ;
-// Wildcard: WILDCARD;
-
 ///////////////////////////////////////////////////
 
+literal : integer | pfloat | pchar | pstring;
+// | STRING | CHAR ;
 special : '(' | ')' | ',' | ';' | '[' | ']' | '`' | '{' | '}';
 
 varid : VARID;
@@ -320,19 +334,10 @@ ascSymbol: ASCSYMBOL;
 //         | '.' | '/' | '<' | '=' | '>' | '?' | '@' 
 //         | '\\' | '^' | '|' | '-' | '~' | ':' ; 
 
-// reservedid : 
-// 		'case' | 'class' | 'data' | 'default' 
-//         | 'deriving' | 'do' | 'else' | 'foreign'
-//         | 'if' | 'import' | 'in' | 'infix' 
-//         | 'infix' | 'infixl' | 'infixr'
-//         | 'instance' | 'let' | 'module' | 'newtype'
-//         | 'of' | 'then' | 'type' | 'where' | '_'
-//         ;
-
-// graphic : SMALL | LARGE | DIGIT | symbol | special; 
-
-varsym : VARSYM;
-consym : CONSYM;
+// fix [:]// 
+varsym : ascSymbol+;
+consym : ':' ascSymbol;
+//
 
 tyvar : varid;
 tycon : conid;
@@ -340,14 +345,25 @@ tycls : conid;
 modid : (conid '.')* conid;
 
 qvarid : (modid '.')? varid;
-qconid : (modid '.')? varid;
+qconid : (modid '.')? conid;
 qtycon : (modid '.')? tycon;
 qtycls : (modid '.')? tycls;
 qvarsym: (modid '.')? varsym;
 qconsym: (modid '.')? consym;
 
-// integer: INTEGER;
-// float: FLOAT;
+integer: DECIMAL;
+pfloat: FLOAT;
+pchar: CHAR;
+pstring: STRING;
+// pchar: '\'' (' ' | DECIMAL | SMALL | LARGE 
+//               | ascSymbol | DIGIT | ',' | ';' | '(' | ')' 
+//               | '[' | ']' | '`' | '"') '\'';
+
+// pstring : '"' (' ' | DECIMAL | SMALL | LARGE 
+//               | ascSymbol | DIGIT | ',' | ';' | '(' | ')' 
+//               | '[' | ']' | '`' | '\'')* '"';
+
+
 // char: '\'' ((graphic~[\'|\\]) | ' ' | escape~[\\&]) '\'';
 // string : '"' ((graphic~[\'|\\]) | ' ' | escape | gap )* '"';
 // escape : '\\' (char | DECIMAL);

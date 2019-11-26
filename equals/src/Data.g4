@@ -18,13 +18,13 @@ body : (topdecls | NEWLINE)+;
 topdecls : topdecl semi;
 
 topdecl : 
-	// ('type' simpletype '=' type)
-   ('data' (context '=>')? simpletype ('=' constrs)? deriving?)
-	// | ('newtype' (context '=>')? simpletype '=' newconstr ('deriving')?)
-	// | ('class' (scontext '=>')? tycls tyvar ('where' cdecls)?)
-	// | ('instance' (scontext '=>')? QTYCLS inst ('where' idecls)?)
-	// | ('default' ( type (',' type)* ))
-	// | ('foreign' fdecl)
+	// (Type simpletype '=' type)
+   (DATA (context '=>')? simpletype ('=' constrs)? deriving?)
+	// | (Newtype (context '=>')? simpletype '=' newconstr deriving?)
+	// | (Class (scontext '=>')? tycls tyvar ('where' cdecls)?)
+	// | (Instance (scontext '=>')? qtycls inst ('where' idecls)?)
+	// | (Default ( type (',' type)* ))
+	// | (Foreign fdecl)
 	| (decl);
 
 decls 
@@ -77,7 +77,7 @@ vars
 
 fixity 
 	:
-	'infixl' | 'infixr' | 'infix'
+	INFIX | INFIXL | INFIXL
 	;
 
 type
@@ -93,7 +93,7 @@ btype
 atype
 	:
 	gtycon
-	| TYVAR
+	| varid
 	| ( '(' type (',' type)* ')' )
 	| ( '[' type ']' )
 	| ( '(' type ')' )
@@ -101,7 +101,7 @@ atype
 
 gtycon
 	:
-	QTYCON
+	qtycon
 	| ( '(' ')' )
 	| ( '[' ']' )
 	| ( '(' '->' ')' )
@@ -116,8 +116,8 @@ context
 
 cls
 	:
-	(QTYCLS TYVAR)
-	| ( QTYCLS '(' TYVAR (atype (',' atype)*) ')' )
+	(conid varid)
+	| ( qtycls '(' tyvar (atype (',' atype)*) ')' )
 	;
 
 scontext
@@ -127,12 +127,12 @@ scontext
 
 simpleclass
 	:
-	QTYCLS TYVAR
+	qtycls tyvar
 	;
 
 simpletype
 	:
-	TYCON TYVAR*
+	tycon tyvar*
 	;
 
 constrs
@@ -154,12 +154,12 @@ fielddecl
 
 deriving
 	:
-	'deriving' (dclass | ('(' (dclass (',' dclass)*)? ')' ))
+	DERIVING (dclass | ('(' (dclass (',' dclass)*)? ')' ))
 	;
 
 dclass
 	:
-	QTYCLS
+	qtycls
 	;
 
 funlhs 
@@ -171,8 +171,8 @@ funlhs
 
 rhs 
 	: 
-	('=' exp ('where' decls)?)
-	| (gdrhs ('where' decls)?);
+	('=' exp (WHERE decls)?)
+	| (gdrhs (WHERE decls)?);
 
 gdrhs
 	:
@@ -192,7 +192,7 @@ guard
 exp	
 	:
 	// infixexp
-	(VARID | CONID | DECIMAL | arithmetic)+
+	(varid | conid | DECIMAL | arithmetic)+
 	;
 
 infixexp
@@ -236,6 +236,9 @@ apat
 gcon
 	:
 	('(' ')')
+	| ('[' ']')
+	| ('(' (',')+ ')')
+	| qcon
 	;
 
 // fpat
@@ -248,89 +251,89 @@ arithmetic
 	('+' | '-' | '*' | '/')
 	;
 
-var	: VARID | ( '(' VARSYM ')' );
-qvar: QVARID| ( '(' QVARSYM ')');
-con : CONID | ( '(' CONSYM ')' );
-qcon: QCONID| ( '(' gconsym ')');
-varop: QVARSYM | ('`' VARID '`');
-qvarop: QVARSYM | ('`' QVARID '`');
-conop: CONSYM | ('`' CONID '`');
-qconop: gconsym | ('`' QCONID '`');
-op: varop | conop;
-qop: qvarop | qconop;
-gconsym: ':' | QCONSYM;
+var	:    varid   | ( '(' varsym ')' );
+qvar:    qvarid  | ( '(' qvarsym ')');
+con :    conid   | ( '(' consym ')' );
+qcon:    qconid  | ( '(' gconsym ')');
+varop:   varsym  | ('`' varid '`')   ;
+qvarop:  qvarsym | ('`' qvarid '`')	 ;
+conop:   consym  | ('`' conid '`')	 ;
+qconop:  gconsym | ('`' qconid '`')	 ;
+op:      varop   | conop			 ;
+qop:     qvarop  | qconop			 ;
+gconsym: ':'  	 | qconsym			 ;
 
 open : VOCURLY | OCURLY;
 close : VCCURLY | CCURLY;
 semi : ';' | SEMI;
 
+// Case    : CASE    ;
+// Class   : CLASS   ;
+// Data    : DATA    ;
+// Default : DEFAULT ;
+// Deriving: DERIVING;
+// Do      : DO	  ;
+// Else    : ELSE    ;
+// Foreign : FOREIGN ;
+// If      : IF      ;
+// Import  : IMPORT  ;
+// In      : IN      ;
+// Infix   : INFIX   ;
+// Infixl  : INFIXL  ;
+// Infixr  : INFIXR  ;
+// Instance: INSTANCE;
+// Let     : LET	  ;
+// Module  : MODULE  ;
+// Newtype : NEWTYPE ;
+// Of      : OF	  ;
+// Then    : THEN    ;
+// Type    : TYPE    ;
+// Where   : WHERE   ;
+// Wildcard: WILDCARD;
 
-////////////////////
+///////////////////////////////////////////////////
 
-// module :  (clause | NEWLINE)+ EOF ;
+special : '(' | ')' | ',' | ';' | '[' | ']' | '`' | '{' | '}';
 
-// clause
-// 	:
-// 	decl
-// 	;
+varid : VARID;
+conid : CONID;
 
-// decl
-// 	:
-// 	funlhs rhs semi
-// 	;
+symbol: ascSymbol;
+ascSymbol: ASCSYMBOL;
+// ascSymbol: '!' | '#' | '$' | '%' | '&' | '*' | '+'
+//         | '.' | '/' | '<' | '=' | '>' | '?' | '@' 
+//         | '\\' | '^' | '|' | '-' | '~' | ':' ; 
 
-// where_decls
-// 	:
-// 	open (where_decl semi+)* where_decl semi* close
-// 	;
+reservedid : 
+		'case' | 'class' | 'data' | 'default' 
+        | 'deriving' | 'do' | 'else' | 'foreign'
+        | 'if' | 'import' | 'in' | 'infix' 
+        | 'infix' | 'infixl' | 'infixr'
+        | 'instance' | 'let' | 'module' | 'newtype'
+        | 'of' | 'then' | 'type' | 'where' | '_'
+        ;
 
-// where_decl
-// 	:
-// 	funlhs rhs
-// 	;
+// graphic : SMALL | LARGE | DIGIT | symbol | special; 
 
-// funlhs
-// 	:
-// 	var apat*
-// 	;
+varsym 	   : symbol+	;
+consym 	   : ':' symbol*;
 
-// rhs
-// 	:
-// 	'=' exp (WHERE where_decls)?
-// 	;
+tyvar : varid;
+tycon : conid;
+tycls : conid;
+modid : (conid '.')* conid;
 
-// var:
-// 	LEGIT
-// 	;
+qvarid : (modid '.')? varid;
+qconid : (modid '.')? varid;
+qtycon : (modid '.')? tycon;
+qtycls : (modid '.')? tycls;
+qvarsym: (modid '.')? varsym;
+qconsym: (modid '.')? consym;
 
-// apat
-// 	:
-// 	LEGIT
-// 	;
-
-// exp
-// 	:
-// 	(LEGIT | DECIMAL | arithmetic)+
-// 	;
-
-// arithmetic
-// 	:
-// 	'+' | '-' | '*' | '/'
-// 	;
-
-// semi
-// 	:
-// 	SEMI
-// 	| ';'
-// 	;
-
-// open
-// 	:
-// 	OCURLY
-// 	| VOCURLY
-// 	;
-// close
-// 	:
-// 	CCURLY
-// 	| VCCURLY
-// 	;
+// integer: INTEGER;
+// float: FLOAT;
+// char: '\'' ((graphic~[\'|\\]) | ' ' | escape~[\\&]) '\'';
+// string : '"' ((graphic~[\'|\\]) | ' ' | escape | gap )* '"';
+// escape : '\\' (char | DECIMAL);
+// charesc : [a..z] | '\\' | '"' | '\'' | '&';
+// gap : '\\' (NEWLINE | '\t' | ' ')'\\';

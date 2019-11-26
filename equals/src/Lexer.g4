@@ -80,14 +80,13 @@ lexer grammar Lexer;
         if (!pendingDent) {
             assign_next(initialIndentToken, next);
         }
-        
+
         int st_ind = next->getStartIndex();
 
         while (nested_level > indentStack.size()) {
             if (nested_level > 0)
                 nested_level--;
 
-            // std::cout << nested_level << ' ' << indentStack.size() << '\n';    
             tokenQueue.push_back(createToken(SEMI, "SEMI", st_ind));
             tokenQueue.push_back(createToken(VCCURLY, "VCCURLY", st_ind));
         }
@@ -117,7 +116,9 @@ lexer grammar Lexer;
         auto next = Lexer::nextToken();
         int st_ind = next->getStartIndex();
 
-        // std::cout << next->toString() << std::endl;
+        if (next->getType() == WHERE)
+            std::cout << "WHERE ";
+        std::cout << next->toString() << std::endl;
 
         if (prev_was_keyword && next->getType() == OCURLY) {
             prev_was_keyword = false;
@@ -126,7 +127,7 @@ lexer grammar Lexer;
             nested_level--;
         }
 
-        if (prev_was_keyword && !prev_was_endl && next->getType() == VARID || next->getType() == CONID) {
+        if (prev_was_keyword && !prev_was_endl && (next->getType() == VARID || next->getType() == CONID)) {
             prev_was_keyword = false;
             indentStack.push({last_key_word, next->getCharPositionInLine()});
             tokenQueue.push_back(createToken(VOCURLY, "VOCURLY", st_ind));
@@ -229,21 +230,6 @@ lexer grammar Lexer;
     }
 }
 
-fragment LARGE   : [A-Z];
-fragment SMALL   : [a-z];
-fragment DIGIT   : [0-9];
-
-WHERE : 'where';
-LET   : 'let'  ;
-IN    : 'in'   ;
-DO    : 'do'   ;
-CASE  : 'case' ;
-OF    : 'of'   ;
-
-IF    : 'if'   ;
-THEN  : 'then' ;
-ELSE  : 'else' ;
-
 NEWLINE : ('\r'? '\n' | '\r') {
     if (pendingDent) { setChannel(HIDDEN); }
     indentCount = 0;
@@ -264,63 +250,57 @@ WS : [ ]+ {
     }
 } ;
 
-// GUARD  : '|';
+COMMENT : DASHES ~[\r\n]* NEWLINE -> skip;
+DASHES : '--' '-'*;
+OPECOM : '{-';
+CLOSECOM : '-}';
+NCOMMENT : OPECOM .*? CLOSECOM -> skip;
+
 OCURLY : '{';
 CCURLY : '}';
-
 VOCURLY : 'VOCURLY' { setChannel(HIDDEN); };
 VCCURLY : 'VCCURLY' { setChannel(HIDDEN); };
 SEMI    : 'SEMI'    { setChannel(HIDDEN); };
 
+fragment LARGE   : [A-Z];
+fragment SMALL   : [a-z];
+fragment DIGIT   : [0-9];
 
-// LITERAL : INTEGER | FLOAT | CHAR | STRING;
-
-// fragment SPECIAL : '(' | ')' | ',' | ';' | '[' | ']' | '`' | '{' | '}' ;
-
-// COMMENT : DASHES (ANY~SYMBOL (ANY)*)? NEWLINE;
-DASHES  : '--' ('-')*;
-// OPENCOM : '{-';
-// CLOSECOM: '-}';
-// NCOMMENT: OPENCOM ANYSEQ CLOSECOM -> channel(HIDDEN);
-
-// ANYSEQ  : (ANY)* ~(OPENCOM | CLOSECOM)
-// ANY     : 
-
-SYMBOL  : '$' | '!' | '^';
+CASE     : 'case'    ;
+CLASS    : 'class'   ;
+DATA     : 'data'    ;
+DEFAULT  : 'default' ;
+DERIVING : 'deriving';
+DO       : 'do'      ;
+ELSE     : 'else'    ;
+FOREIGN  : 'foreign' ;
+IF       : 'if'      ;
+IMPORT   : 'import'  ;
+IN       : 'in'      ;
+INFIX    : 'infix'   ;
+INFIXL   : 'infixl'  ;
+INFIXR   : 'infixr'  ;
+INSTANCE : 'instance';
+LET      : 'let'     ;
+MODULE   : 'module'  ;
+NEWTYPE  : 'newtype' ;
+OF       : 'of'      ;
+THEN     : 'then'    ;
+TYPE     : 'type'    ;
+WHERE    : 'where'   ;
+WILDCARD : '_'       ;
 
 VARID   : SMALL (SMALL | LARGE | DIGIT | '\'')*;
 CONID   : LARGE (SMALL | LARGE | DIGIT | '\'')*;
-// fragment RESERVEDID :
-//         'case' | 'class' | 'data' | 'default' 
-//         | 'deriving' | 'do' | 'else' | 'foreign'
-//         | 'if' | 'import' | 'in' | 'infix' 
-//         | 'infix' | 'infixl' | 'infixr'
-//         | 'instance' | 'let' | 'module' | 'newtype'
-//         | 'of' | 'then' | 'type' | 'where' | '_'
-//         ;
 
-VARSYM  : SYMBOL~[:] (SYMBOL)*;
-CONSYM  : (':' (SYMBOL)*);
-fragment RESERVEDOP : '..' | ':' | '::' | '=' | '\\' | '|' 
-            | '<-' | '@' | '~' | '=>'
-            ;
+ASCSYMBOL : '!' | '#' | '$' | '%' | '&' | '*' | '+'
+        | '.' | '/' | '<' | '=' | '>' | '?' | '@' 
+        | '\\' | '^' | '|' | '-' | '~' | ':' ; 
 
-TYVAR : VARID;
-TYCON : CONID;
-TYCLS : CONID;
-MODID : (CONID '.')* CONID;
-
-QVARID  : (MODID '.')? VARID ;
-QCONID  : (MODID '.')? CONID ;
-QTYCON  : (MODID '.')? TYCON ;
-QTYCLS  : (MODID '.')? TYCLS ; 
-QVARSYM : (MODID '.')? VARSYM;
-QCONSYM : (MODID '.')? CONSYM;
+RESERVEDOP : '..' | ':' | '::' | '=' | '\\' 
+             | '|' | '<-' | '->' | '@' | '~' | '=>';
 
 DECIMAL : DIGIT+;
-
 INTEGER : DECIMAL;
-
 FLOAT: (DECIMAL '.' DECIMAL (EXPONENT)?) | (DECIMAL EXPONENT);
-
 EXPONENT : [eE] [+-]? DECIMAL;

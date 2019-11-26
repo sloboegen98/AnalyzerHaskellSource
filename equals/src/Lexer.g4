@@ -293,6 +293,9 @@ WILDCARD : '_'       ;
 VARID   : SMALL (SMALL | LARGE | DIGIT | '\'')*;
 CONID   : LARGE (SMALL | LARGE | DIGIT | '\'')*;
 
+CONSYM : ':' ASCSYMBOL+; 
+VARSYM : ASCSYMBOL+;
+
 ASCSYMBOL : '!' | '#' | '$' | '%' | '&' | '*' | '+'
         | '.' | '/' | '<' | '=' | '>' | '?' | '@' 
         | '\\' | '^' | '|' | '-' | '~' | ':' ; 

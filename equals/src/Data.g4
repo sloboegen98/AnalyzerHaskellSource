@@ -21,15 +21,15 @@ topdecl :
 	(TYPE simpletype '=' type)
     | (DATA (context '=>')? simpletype ('=' constrs)? deriving?)
 	| (NEWTYPE (context '=>')? simpletype '=' newconstr deriving?)
-	// | (Class (scontext '=>')? tycls tyvar ('where' cdecls)?)
+	| (CLASS (scontext '=>')? tycls tyvar (WHERE cdecls)?)
 	// | (Instance (scontext '=>')? qtycls inst ('where' idecls)?)
 	// | (Default ( type (',' type)* ))
 	// | (Foreign fdecl)
-	| (decl);
+	| decl;
 
 decls 
 	:
-	open (decl semi+)* decl semi* close
+	open ((decl semi+)* decl semi*)? close
 	;
 
 decl 
@@ -40,7 +40,7 @@ decl
 
 cdecls
 	:
-	open (cdecl semi+)* cdecl semi* close
+	open ((cdecl semi+)* cdecl semi*)? close
 	;
 
 cdecl
@@ -122,7 +122,8 @@ cls
 
 scontext
 	:
-	'(' simpleclass (',' simpleclass)* ')'
+	simpleclass
+	| ( '(' (simpleclass (',' simpleclass)*)? ')' )
 	;
 
 simpleclass
@@ -321,8 +322,8 @@ ascSymbol: ASCSYMBOL;
 
 // graphic : SMALL | LARGE | DIGIT | symbol | special; 
 
-varsym 	   : symbol+	;
-consym 	   : ':' symbol*;
+varsym : VARSYM;
+consym : CONSYM;
 
 tyvar : varid;
 tycon : conid;

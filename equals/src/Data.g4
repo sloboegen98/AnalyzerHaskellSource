@@ -22,7 +22,7 @@ topdecl :
     | (DATA (context '=>')? simpletype ('=' constrs)? deriving?)
 	| (NEWTYPE (context '=>')? simpletype '=' newconstr deriving?)
 	| (CLASS (scontext '=>')? tycls tyvar (WHERE cdecls)?)
-	// | (Instance (scontext '=>')? qtycls inst ('where' idecls)?)
+	| (INSTANCE (scontext '=>')? qtycls inst (WHERE idecls)?)
 	// | (Default ( type (',' type)* ))
 	// | (Foreign fdecl)
 	| decl;
@@ -51,7 +51,7 @@ cdecl
 
 idecls
 	:
-	open (idecl semi+)* idecl semi* close
+	open ((idecl semi+)* idecl semi*)? close
 	;
 
 idecl
@@ -167,6 +167,15 @@ deriving
 dclass
 	:
 	qtycls
+	;
+
+inst 
+	:
+	gtycon
+	| ( '(' gtycon tyvar* ')' )
+	| ( '(' tyvar ',' tyvar (',' tyvar)* ')') 
+	| ( '[' tyvar ']')
+	| ( '(' tyvar '->' tyvar ')' )
 	;
 
 funlhs 

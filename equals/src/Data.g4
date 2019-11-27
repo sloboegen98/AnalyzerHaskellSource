@@ -226,7 +226,7 @@ lexp
 	('\\' apat+ '->' exp)
 	| (LET decls IN exp)
 	| (IF exp ';'? THEN exp ';'? ELSE exp)
-	// | (CASE exp OF )
+	| (CASE exp OF alts)
 	| (DO stmts)
 	| fexp
 	;
@@ -257,6 +257,22 @@ qual
 	(pat '<-' exp)
 	| (LET decls)
 	| exp
+	;
+
+alts
+	:
+	open (alt semi)+ close
+	;
+
+alt
+	:
+	(pat '->' exp (WHERE decls)?)
+	| (pat gdpat (WHERE decls)?)
+	;
+
+gdpat
+	:
+	(guards '->' exp)+
 	;
 
 // check!

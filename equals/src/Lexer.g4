@@ -116,8 +116,6 @@ lexer grammar Lexer;
         auto next = Lexer::nextToken();
         int st_ind = next->getStartIndex();
 
-        if (next->getType() == WHERE)
-            std::cout << "WHERE ";
         std::cout << next->toString() << std::endl;
 
         if (prev_was_keyword && next->getType() == OCURLY) {
@@ -133,9 +131,9 @@ lexer grammar Lexer;
             tokenQueue.push_back(createToken(VOCURLY, "VOCURLY", st_ind));
         }
 
-        if (ignore_indent && (next->getType() == WHERE || next->getType() == CCURLY)) {
+        if (ignore_indent && (next->getType() == WHERE || next->getType() == DO || next->getType() == LET || next->getType() == CASE || next->getType() == CCURLY)) {
             ignore_indent = false;
-            prev_was_endl = (next->getType() == WHERE);
+            prev_was_endl = (next->getType() == WHERE || next->getType() == DO || next->getType() == LET || next->getType() == CASE);
         }
 
         if (pendingDent && prev_was_endl
@@ -145,6 +143,7 @@ lexer grammar Lexer;
             && next->getType() != WHERE
             && next->getType() != LET
             && next->getType() != DO
+            && next->getType() != OF
             && next->getType() != EOF) {
 
             while (nested_level > indentStack.size()) {
@@ -198,7 +197,7 @@ lexer grammar Lexer;
             prev_was_endl = true;
         }
 
-        if (next->getType() == WHERE || next->getType() == LET || next->getType() == DO) {
+        if (next->getType() == WHERE || next->getType() == LET || next->getType() == DO || next->getType() == OF) {
             nested_level++; // if next will be OCURLY need to decrement nested_level
             prev_was_keyword = true;
             prev_was_endl = false;

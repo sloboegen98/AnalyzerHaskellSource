@@ -211,9 +211,9 @@ exp
 	:
 	(infixexp '::' (context '=>')? type)
 	| infixexp 
-	// | (varid | conid | DECIMAL | '+' | '-' | '*' )+
 	;
 
+// comment original alt 'lexp'
 infixexp
 	:
 	(lexp qop infixexp)
@@ -359,10 +359,10 @@ varid : VARID;
 conid : CONID;
 
 symbol: ascSymbol;
-ascSymbol: ASCSYMBOL;
-// ascSymbol: '!' | '#' | '$' | '%' | '&' | '*' | '+'
-//         | '.' | '/' | '<' | '=' | '>' | '?' | '@' 
-//         | '\\' | '^' | '|' | '-' | '~' | ':' ; 
+// ascSymbol: ASCSYMBOL;
+ascSymbol: '!' | '#' | '$' | '%' | '&' | '*' | '+'
+        | '.' | '/' | '<' | '=' | '>' | '?' | '@' 
+        | '\\' | '^' | '|' | '-' | '~' | ':' ; 
 
 // fix [:]// 
 varsym : ascSymbol+;

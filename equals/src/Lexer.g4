@@ -116,7 +116,7 @@ lexer grammar Lexer;
         auto next = Lexer::nextToken();
         int st_ind = next->getStartIndex();
 
-        std::cout << next->toString() << std::endl;
+        // std::cout << next->toString() << std::endl;
 
         if (prev_was_keyword && next->getType() == OCURLY) {
             prev_was_keyword = false;

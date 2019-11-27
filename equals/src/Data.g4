@@ -227,7 +227,7 @@ lexp
 	| (LET decls IN exp)
 	| (IF exp ';'? THEN exp ';'? ELSE exp)
 	// | (CASE exp OF )
-	// | (DO stmts)
+	| (DO stmts)
 	| fexp
 	;
 
@@ -257,6 +257,20 @@ qual
 	(pat '<-' exp)
 	| (LET decls)
 	| exp
+	;
+
+// check!
+stmts
+	:
+	open stmt* exp semi? close
+	;
+
+stmt
+	:
+	(exp semi)
+	| (pat '<-' exp semi)
+	| (LET decls semi)
+	| semi
 	;
 
 fbind

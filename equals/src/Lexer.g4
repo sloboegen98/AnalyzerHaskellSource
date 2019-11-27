@@ -299,28 +299,6 @@ STRING : '"' (' ' | DECIMAL | SMALL | LARGE
 
 VARID : SMALL (SMALL | LARGE | DIGIT | '\'')*;
 CONID : LARGE (SMALL | LARGE | DIGIT | '\'')*;
-// MODID : (CONID '.')* CONID; 
-
-// CONSYM : ':' ASCSYMBOL+; 
-// VARSYM : ASCSYMBOL~[:] ASCSYMBOL*;
-// QVARID : (MODID '.')? VARID;
-// QCONID : (MODID '.')? CONID;
-// QTYCON : (MODID '.')? CONID;
-// QTYCLS : (MODID '.')? CONID;
-// QVARSYM: (MODID '.')? VARSYM;
-// QCONSYM: (MODID '.')? CONSYM; 
-
-// tyvar : varid;
-// tycon : conid;
-// tycls : conid;
-// modid : (conid '.')* conid;
-
-// qvarid : (modid '.')? varid;
-// qconid : (modid '.')? conid;
-// qtycon : (modid '.')? tycon;
-// qtycls : (modid '.')? tycls;
-// qvarsym: (modid '.')? varsym;
-// qconsym: (modid '.')? consym;
 
 ASCSYMBOL : '!' | '#' | '$' | '%' | '&' | '*' | '+'
         | '.' | '/' | '<' | '=' | '>' | '?' | '@' 

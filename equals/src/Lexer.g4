@@ -262,7 +262,7 @@ VCCURLY : 'VCCURLY' { setChannel(HIDDEN); };
 SEMI    : 'SEMI'    { setChannel(HIDDEN); };
 
 fragment LARGE   : [A-Z];
-fragment SMALL   : [a-z];
+fragment SMALL   : [_a-z];
 fragment DIGIT   : [0-9];
 
 CASE     : 'case'    ;
@@ -296,8 +296,8 @@ STRING : '"' (' ' | DECIMAL | SMALL | LARGE
               | ASCSYMBOL | DIGIT | ',' | ';' | '(' | ')' 
               | '[' | ']' | '`' | '\'')* '"';
 
-VARID : SMALL (SMALL | LARGE | DIGIT | '\'')*;
-CONID : LARGE (SMALL | LARGE | DIGIT | '\'')*;
+VARID : SMALL (SMALL | LARGE | DIGIT | '\'' )*;
+CONID : LARGE (SMALL | LARGE | DIGIT | '\'' )*;
 
 ASCSYMBOL : '!' | '#' | '$' | '%' | '&' | '*' | '+'
         | '.' | '/' | '<' | '=' | '>' | '?' | '@' 

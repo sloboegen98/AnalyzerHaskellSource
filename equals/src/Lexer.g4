@@ -163,7 +163,7 @@ lexer grammar Lexer;
                 tokenQueue.push_back(createToken(VCCURLY, "VCCURLY", st_ind));
             }
             
-            if (indentCount == getSavedIndent()) {
+            if (indentCount == getSavedIndent() && next->getType() != CCURLY) {
                 tokenQueue.push_back(createToken(SEMI, "SEMI", st_ind));
             }
 

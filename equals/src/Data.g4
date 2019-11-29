@@ -13,9 +13,12 @@ import Lexer;
 
 module : body EOF;
 
-body : (
-	(impdecls semi+ topdecls)
-	| impdecls | topdecls | NEWLINE | semi)+;
+// body : (impdecls | topdecls | NEWLINE | semi)+;
+
+body
+	:
+	impdecls? topdecls
+	;
 
 // body 
 // 	:
@@ -26,7 +29,7 @@ body : (
 
 impdecls
 	:
-	impdecl (semi+ impdecl)*
+	impdecl+
 	;
 
 impdecl
@@ -51,7 +54,7 @@ cname
 	var | con
 	;
 
-topdecls : topdecl semi+;
+topdecls : ((topdecl semi+) | NEWLINE | semi)+;
 
 topdecl : 
 	(TYPE simpletype '=' type)
@@ -280,7 +283,7 @@ aexp
 	| ( '(' exp ')' )
 	| ( '(' exp ',' exp (',' exp)* ')' )
 	| ( '[' exp (',' exp)* ']' )
-	| ( '[' exp (',' exp)? '..' (',' exp)? ']' )
+	| ( '[' exp (',' exp)? '..' exp? ']' )
 	| ( '[' exp '|' qual (',' qual)* ']' )
 	| ( '(' infixexp qop ')' )
 	| ( '(' qop infixexp ')' )    // qop ~ [-] ?????????

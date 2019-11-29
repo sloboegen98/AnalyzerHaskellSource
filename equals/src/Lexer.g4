@@ -117,11 +117,15 @@ lexer grammar Lexer;
         int st_ind = next->getStartIndex();
 
         // std::cout << next->toString() << std::endl;
-        if (prev_was_keyword && next->getType() == OCURLY) {
-            prev_was_keyword = false;
+        if (next->getType() == OCURLY) {
+            if (prev_was_keyword) { 
+                nested_level--;
+                prev_was_keyword = false;
+            }
+
             ignore_indent = true;
             prev_was_endl = false;
-            nested_level--;
+            // nested_level--;
         }
 
         if (prev_was_keyword && !prev_was_endl && (next->getType() == VARID || next->getType() == CONID)) {
@@ -163,7 +167,7 @@ lexer grammar Lexer;
                 tokenQueue.push_back(createToken(VCCURLY, "VCCURLY", st_ind));
             }
             
-            if (indentCount == getSavedIndent() && next->getType() != CCURLY) {
+            if (indentCount == getSavedIndent()) {
                 tokenQueue.push_back(createToken(SEMI, "SEMI", st_ind));
             }
 

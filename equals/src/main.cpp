@@ -36,9 +36,9 @@ int main(int argc, char *argv[]) {
 
     tokens.fill();
     // Only if you want to list the tokens
-    for (auto token : tokens.getTokens()) {
-     std::cout << token->toString() << std::endl;
-    }
+    // for (auto token : tokens.getTokens()) {
+    //  std::cout << token->toString() << std::endl;
+    // }
     
     DataParser parser(&tokens);
     // parser.removeErrorListeners();

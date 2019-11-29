@@ -117,7 +117,6 @@ lexer grammar Lexer;
         int st_ind = next->getStartIndex();
 
         // std::cout << next->toString() << std::endl;
-
         if (prev_was_keyword && next->getType() == OCURLY) {
             prev_was_keyword = false;
             ignore_indent = true;
@@ -131,9 +130,9 @@ lexer grammar Lexer;
             tokenQueue.push_back(createToken(VOCURLY, "VOCURLY", st_ind));
         }
 
-        if (ignore_indent && (next->getType() == WHERE || next->getType() == DO || next->getType() == LET || next->getType() == CASE || next->getType() == CCURLY)) {
+        if (ignore_indent && (next->getType() == WHERE || next->getType() == DO || next->getType() == LET || next->getType() == OF || next->getType() == CCURLY)) {
             ignore_indent = false;
-            prev_was_endl = (next->getType() == WHERE || next->getType() == DO || next->getType() == LET || next->getType() == CASE);
+            prev_was_endl = (next->getType() == WHERE || next->getType() == DO || next->getType() == LET || next->getType() == OF);
         }
 
         if (pendingDent && prev_was_endl
@@ -251,9 +250,9 @@ WS : [ ]+ {
 
 COMMENT : DASHES ~[\r\n]* NEWLINE -> skip;
 DASHES : '--' '-'*;
+NCOMMENT : OPECOM .*? CLOSECOM -> skip;
 OPECOM : '{-';
 CLOSECOM : '-}';
-NCOMMENT : OPECOM .*? CLOSECOM -> skip;
 
 OCURLY : '{';
 CCURLY : '}';
@@ -288,6 +287,7 @@ THEN     : 'then'    ;
 TYPE     : 'type'    ;
 WHERE    : 'where'   ;
 WILDCARD : '_'       ;
+QUALIFIED: 'qualified';
 
 CHAR : '\'' (' ' | DECIMAL | SMALL | LARGE 
               | ASCSYMBOL | DIGIT | ',' | ';' | '(' | ')' 

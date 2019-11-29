@@ -13,9 +13,45 @@ import Lexer;
 
 module : body EOF;
 
-body : (topdecls | NEWLINE)+;
+body : (
+	(impdecls semi+ topdecls)
+	| impdecls | topdecls | NEWLINE | semi)+;
 
-topdecls : topdecl semi;
+// body 
+// 	:
+// 	(impdecls semi+ topdecls)
+// 	| (impdecls)
+// 	| (topdecls)
+// 	;
+
+impdecls
+	:
+	impdecl (semi+ impdecl)*
+	;
+
+impdecl
+	:
+	IMPORT QUALIFIED? modid ('as' modid)? impspec? semi+
+	;
+
+impspec
+	:
+	'(' (himport (',' himport) ','?)? ')'
+ 	;
+
+himport
+	:
+	var
+	| (tycon '(' ('..' | (cname (',' cname)* )? )? ')')
+	| (tycls '(' ('..' | (var (',' var)* )? )? ')')
+	;
+
+cname 
+	:
+	var | con
+	;
+
+topdecls : topdecl semi+;
 
 topdecl : 
 	(TYPE simpletype '=' type)
@@ -225,7 +261,7 @@ lexp
 	:
 	('\\' apat+ '->' exp)
 	| (LET decls IN exp)
-	| (IF exp ';'? THEN exp ';'? ELSE exp)
+	| (IF exp semi? THEN exp semi? ELSE exp)
 	| (CASE exp OF alts)
 	| (DO stmts)
 	| fexp
@@ -278,15 +314,15 @@ gdpat
 // check!
 stmts
 	:
-	open stmt* exp semi? close
+	open stmt* exp semi* close
 	;
 
 stmt
 	:
-	(exp semi)
-	| (pat '<-' exp semi)
-	| (LET decls semi)
-	| semi
+	(exp semi+)
+	| (pat '<-' exp semi+)
+	| (LET decls semi+)
+	| semi+
 	;
 
 fbind
@@ -385,6 +421,18 @@ integer: DECIMAL;
 pfloat: FLOAT;
 pchar: CHAR;
 pstring: STRING;
+
+// BlockComment 
+// 	:
+// 	'{-' .*? '-}' -> skip
+// 	;
+
+// LineComment
+// 	:
+// 	'--' ~[\r\n]* -> skip
+// 	;
+
+
 // pchar: '\'' (' ' | DECIMAL | SMALL | LARGE 
 //               | ascSymbol | DIGIT | ',' | ';' | '(' | ')' 
 //               | '[' | ']' | '`' | '"') '\'';

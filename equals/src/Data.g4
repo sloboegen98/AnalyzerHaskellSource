@@ -11,25 +11,31 @@ import Lexer;
 	std::vector <std::string> functions;
 }
 
-module : body EOF;
-
-// body : (impdecls | topdecls | NEWLINE | semi)+;
+module : ((MODULE modid exports? WHERE body) | body) EOF;
 
 body
 	:
-	impdecls? topdecls
+	(impdecls topdecls)
+	| impdecls
+	| topdecls
 	;
-
-// body 
-// 	:
-// 	(impdecls semi+ topdecls)
-// 	| (impdecls)
-// 	| (topdecls)
-// 	;
 
 impdecls
 	:
 	(impdecl | NEWLINE | semi)+
+	;
+
+exports
+	:
+	'(' (exprt (',' exprt)*)? ','? ')'
+	;
+
+exprt
+	:
+	qvar
+	| ( qtycon ( ('(' '..' ')') | ('(' (cname (',' cname)*)? ')') )? )
+	| ( qtycls ( ('(' '..' ')') | ('(' (qvar (',' qvar)*)? ')') )? )
+	| ( MODULE modid )
 	;
 
 impdecl
@@ -232,23 +238,6 @@ callconv
 impent : pstring;
 expent : pstring;
 safety : 'unsafe' | 'safe';
-
-// ftype 
-// 	:
-// 	frtype 
-// 	| 
-// 	; 
-
-// frtype
-// 	:
-// 	fatype
-// 	| '(' ')'
-// 	;
-
-// fatype
-// 	:
-// 	qtycon atype*
-// 	;
 
 funlhs 
 	:

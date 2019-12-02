@@ -37,9 +37,9 @@ lexer grammar Lexer;
 
     bool prev_was_endl = false;
     bool prev_was_keyword = false;
-
     bool ignore_indent = false;
 
+    int start_indent = -1;
     int nested_level = 0;
 
     int getSavedIndent() { return indentStack.empty() ? 0 : indentStack.top().second; }
@@ -76,7 +76,7 @@ lexer grammar Lexer;
     }
 
     void processEOFToken(std::unique_ptr<Token>& next) {
-        indentCount = 0;
+        indentCount = start_indent;
         if (!pendingDent) {
             assign_next(initialIndentToken, next);
         }
@@ -104,6 +104,8 @@ lexer grammar Lexer;
         if (indentCount == getSavedIndent()) {
             tokenQueue.push_back(createToken(SEMI, "SEMI", st_ind));
         }
+
+        start_indent = -1;
     }
 
     std::unique_ptr <Token> nextToken() override {
@@ -114,6 +116,10 @@ lexer grammar Lexer;
         }
 
         auto next = Lexer::nextToken();
+
+        if (start_indent == -1 && (next->getType() != NEWLINE && next->getType() != WS && next->getType() != TAB))
+            start_indent = next->getCharPositionInLine();
+
         int st_ind = next->getStartIndex();
 
         // std::cout << next->toString() << std::endl;
@@ -125,7 +131,6 @@ lexer grammar Lexer;
 
             ignore_indent = true;
             prev_was_endl = false;
-            // nested_level--;
         }
 
         if (prev_was_keyword && !prev_was_endl && (next->getType() == VARID || next->getType() == CONID)) {
@@ -172,7 +177,7 @@ lexer grammar Lexer;
             }
 
             prev_was_endl = false;
-            if (indentCount == 0) pendingDent = false;
+            if (indentCount == start_indent) pendingDent = false;
         }
 
         if (pendingDent && prev_was_keyword

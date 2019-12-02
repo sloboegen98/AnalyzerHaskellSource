@@ -11,7 +11,7 @@ import Lexer;
 	std::vector <std::string> functions;
 }
 
-module : ((MODULE modid exports? WHERE body) | body) EOF;
+module : ((MODULE modid exports? WHERE open body close semi*) | body) EOF;
 
 body
 	:

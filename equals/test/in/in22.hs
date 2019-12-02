@@ -1,0 +1,1 @@
+firstNElems (x:xs) n = x : firstNElems xs (n - 1)

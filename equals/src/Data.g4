@@ -63,7 +63,8 @@ cname
 
 topdecls : ((topdecl semi+) | NEWLINE | semi)+;
 
-topdecl : 
+topdecl 
+	: 
 	(TYPE simpletype '=' type)
     | (DATA (context '=>')? simpletype ('=' constrs)? deriving?)
 	| (NEWTYPE (context '=>')? simpletype '=' newconstr deriving?)

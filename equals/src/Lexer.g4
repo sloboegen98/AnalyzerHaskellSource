@@ -257,8 +257,7 @@ WS : [ ]+ {
     }
 } ;
 
-COMMENT : DASHES ~[\r\n]* NEWLINE -> skip;
-DASHES : '--' '-'*;
+COMMENT : '--' (~[\r\n])* -> skip;
 NCOMMENT : OPECOM .*? CLOSECOM -> skip;
 OPECOM : '{-';
 CLOSECOM : '-}';
@@ -268,10 +267,6 @@ CCURLY : '}';
 VOCURLY : 'VOCURLY' { setChannel(HIDDEN); };
 VCCURLY : 'VCCURLY' { setChannel(HIDDEN); };
 SEMI    : 'SEMI'    { setChannel(HIDDEN); };
-
-fragment LARGE   : [A-Z];
-fragment SMALL   : [_a-z];
-fragment DIGIT   : [0-9];
 
 CASE     : 'case'    ;
 CLASS    : 'class'   ;
@@ -316,7 +311,45 @@ ASCSYMBOL : '!' | '#' | '$' | '%' | '&' | '*' | '+'
 // RESERVEDOP : '..' | ':' | '::' | '=' | '\\' 
 //              | '|' | '<-' | '->' | '@' | '~' | '=>';
 
+fragment DIGIT : ASCDIGIT;
+
+fragment ASCDIGIT : [0-9];
+// fragment UNIDIGIT:
+//     | [\u0030-\u0039]
+//     | [\u0660-\u0669]
+//     | [\u06F0-\u06F9]
+//     | [\u0966-\u096F]
+//     | [\u09E6-\u09EF]
+//     | [\u0A66-\u0A6F]
+//     | [\u0AE6-\u0AEF]
+//     | [\u0B66-\u0B6F]
+//     | [\u0BE7-\u0BEF]
+//     | [\u0C66-\u0C6F]
+//     | [\u0CE6-\u0CEF]
+//     | [\u0D66-\u0D6F]
+//     | [\u0E50-\u0E59]
+//     | [\u0ED0-\u0ED9]
+//     | [\u0F20-\u0F29]
+//     | [\u1040-\u1049]
+//     | [\u1369-\u1371]
+//     | [\u17E0-\u17E9]
+//     | [\u1810-\u1819]
+//     | [\uFF10-\uFF19]
+//     ;
+
+
 DECIMAL : DIGIT+;
-// INTEGER : DECIMAL;
 FLOAT: (DECIMAL '.' DECIMAL (EXPONENT)?) | (DECIMAL EXPONENT);
 EXPONENT : [eE] [+-]? DECIMAL;
+
+fragment LARGE : ASCLARGE | UNILARGE;
+
+fragment ASCLARGE : [A-Z];
+fragment UNILARGE : [\u0421];
+
+fragment SMALL : ASCSMALL | UNISMALL;
+fragment ASCSMALL : [_a-z];
+fragment UNISMALL 
+    :
+    [\u0425] 
+    ;

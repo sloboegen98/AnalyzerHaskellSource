@@ -42,7 +42,7 @@ lexer grammar Lexer;
     int start_indent = -1;
     int nested_level = 0;
 
-    int getSavedIndent() { return indentStack.empty() ? 0 : indentStack.top().second; }
+    int getSavedIndent() { return indentStack.empty() ? start_indent : indentStack.top().second; }
 
     std::unique_ptr <CommonToken> 
     createToken(int type, std::string text, int start_ind) {

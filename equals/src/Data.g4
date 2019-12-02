@@ -39,14 +39,15 @@ impdecl
 
 impspec
 	:
-	'(' (himport (',' himport) ','?)? ')'
+	('(' (himport (',' himport)* ','?)? ')')
+	| ( 'hiding' '(' (himport (',' himport)* ','?)? ')' )
  	;
 
 himport
 	:
 	var
-	| (tycon '(' ('..' | (cname (',' cname)* )? )? ')')
-	| (tycls '(' ('..' | (var (',' var)* )? )? ')')
+	| ( tycon ( ('(' '..' ')') | ('(' (cname (',' cname)*)? ')') )? )
+	| ( tycls ( ('(' '..' ')') | ('(' (var (',' var)*)? ')') )? )
 	;
 
 cname 
@@ -63,7 +64,7 @@ topdecl :
 	| (CLASS (scontext '=>')? tycls tyvar (WHERE cdecls)?)
 	| (INSTANCE (scontext '=>')? qtycls inst (WHERE idecls)?)
 	| (DEFAULT '(' (type (',' type)*)? ')' )
-	// | (FOREIGN fdecl)
+	| (FOREIGN fdecl)
 	| decl;
 
 decls 
@@ -217,6 +218,38 @@ inst
 	| ( '(' tyvar '->' tyvar ')' )
 	;
 
+fdecl
+	:
+	IMPORT callconv safety? impent var '::' ftype
+	| EXPORT callconv expent var '::' ftype
+	;
+
+callconv
+	:
+	'ccall' | 'stdcall' | 'cplusplus' | 'jvm' | 'dotnet'
+	;
+
+impent : pstring;
+expent : pstring;
+safety : 'unsafe' | 'safe';
+
+ftype 
+	:
+	frtype 
+	| fatype '->' ftype
+	; 
+
+frtype
+	:
+	fatype
+	| '(' ')'
+	;
+
+fatype
+	:
+	qtycon atype*
+	;
+
 funlhs 
 	:
 	(var apat+)
@@ -317,7 +350,7 @@ gdpat
 // check!
 stmts
 	:
-	open stmt* exp semi* close
+	open (stmt (WHERE decls)?)* exp (WHERE decls)? semi* close
 	;
 
 stmt

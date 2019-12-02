@@ -275,6 +275,7 @@ DEFAULT  : 'default' ;
 DERIVING : 'deriving';
 DO       : 'do'      ;
 ELSE     : 'else'    ;
+EXPORT   : 'export'  ;
 FOREIGN  : 'foreign' ;
 IF       : 'if'      ;
 IMPORT   : 'import'  ;

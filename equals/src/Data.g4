@@ -220,8 +220,8 @@ inst
 
 fdecl
 	:
-	IMPORT callconv safety? impent var '::' ftype
-	| EXPORT callconv expent var '::' ftype
+	(IMPORT callconv safety? impent var '::' type)
+	| (EXPORT callconv expent var '::' type)
 	;
 
 callconv
@@ -233,22 +233,22 @@ impent : pstring;
 expent : pstring;
 safety : 'unsafe' | 'safe';
 
-ftype 
-	:
-	frtype 
-	| fatype '->' ftype
-	; 
+// ftype 
+// 	:
+// 	frtype 
+// 	| 
+// 	; 
 
-frtype
-	:
-	fatype
-	| '(' ')'
-	;
+// frtype
+// 	:
+// 	fatype
+// 	| '(' ')'
+// 	;
 
-fatype
-	:
-	qtycon atype*
-	;
+// fatype
+// 	:
+// 	qtycon atype*
+// 	;
 
 funlhs 
 	:

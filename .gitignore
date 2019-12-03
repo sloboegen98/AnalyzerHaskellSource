@@ -1,4 +1,5 @@
 *.java
+test/student
 *.class
 *Parser*
 *Lexer*

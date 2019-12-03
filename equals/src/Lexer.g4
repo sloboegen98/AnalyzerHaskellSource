@@ -133,7 +133,9 @@ lexer grammar Lexer;
             prev_was_endl = false;
         }
 
-        if (prev_was_keyword && !prev_was_endl && (next->getType() == VARID || next->getType() == CONID)) {
+        if (prev_was_keyword && !prev_was_endl && 
+            (next->getType() != WS && next->getType() != NEWLINE 
+            && next->getType() != TAB && next->getType() != OCURLY)) {
             prev_was_keyword = false;
             indentStack.push({last_key_word, next->getCharPositionInLine()});
             tokenQueue.push_back(createToken(VOCURLY, "VOCURLY", st_ind));
@@ -250,7 +252,7 @@ TAB : [\t]+ {
     }
 } ;
 
-WS : [ ]+ {
+WS : [\u0020\u00a0\u1680\u2000\u200a\u202f\u205f\u3000]+ {
     setChannel(HIDDEN);
     if (pendingDent) {
         indentCount += getText().length();
@@ -302,10 +304,6 @@ STRING : '"' (' ' | DECIMAL | SMALL | LARGE
 VARID : SMALL (SMALL | LARGE | DIGIT | '\'' )*;
 CONID : LARGE (SMALL | LARGE | DIGIT | '\'' )*;
 
-ASCSYMBOL : '!' | '#' | '$' | '%' | '&' | '*' | '+'
-        | '.' | '/' | '<' | '=' | '>' | '?' | '@' 
-        | '\\' | '^' | '|' | '-' | '~' | ':' ; 
-
 // RESERVEDOP : '..' | ':' | '::' | '=' | '\\' 
 //              | '|' | '<-' | '->' | '@' | '~' | '=>';
 
@@ -350,8 +348,7 @@ fragment UNIDIGIT
     | '\uaa50'..'\uaa59'       // Cham
     | '\uabf0'..'\uabf9'       // Meetei_Mayek
     | '\uff10'..'\uff19'       // Halfwidth_and_Fullwidth_Forms
-    ;
-
+;
 
 DECIMAL : DIGIT+;
 FLOAT: (DECIMAL '.' DECIMAL (EXPONENT)?) | (DECIMAL EXPONENT);
@@ -1557,4 +1554,238 @@ fragment UNISMALL
     | '\ufb00'..'\ufb06'       // Alphabetic_Presentation_Forms
     | '\ufb13'..'\ufb17'       // Alphabetic_Presentation_Forms
     | '\uff41'..'\uff5a'       // Halfwidth_and_Fullwidth_Forms
+;
+
+ASCSYMBOL : '!' | '#' | '$' | '%' | '&' | '*' | '+'
+        | '.' | '/' | '<' | '=' | '>' | '?' | '@' 
+        | '\\' | '^' | '|' | '-' | '~' | ':' ; 
+
+UNISYMBOL  
+    :
+    CLASSIFY_Sc | CLASSIFY_Sk | CLASSIFY_Sm | CLASSIFY_So
+    ;
+
+fragment CLASSIFY_Sc:
+      '\u0024'                 // Basic_Latin
+    | '\u00a2'..'\u00a5'       // Latin-1_Supplement
+    | '\u058f'                 // (Absent from Blocks.txt)
+    | '\u060b'                 // Arabic
+    | '\u09f2'..'\u09f3'       // Bengali
+    | '\u09fb'                 // Bengali
+    | '\u0af1'                 // Gujarati
+    | '\u0bf9'                 // Tamil
+    | '\u0e3f'                 // Thai
+    | '\u17db'                 // Khmer
+    | '\u20a0'..'\u20be'       // Currency_Symbols
+    | '\ua838'                 // Common_Indic_Number_Forms
+    | '\ufdfc'                 // Arabic_Presentation_Forms-A
+    | '\ufe69'                 // Small_Form_Variants
+    | '\uff04'                 // Halfwidth_and_Fullwidth_Forms
+    | '\uffe0'..'\uffe1'       // Halfwidth_and_Fullwidth_Forms
+    | '\uffe5'..'\uffe6'       // Halfwidth_and_Fullwidth_Forms
+;
+
+fragment CLASSIFY_Sk:
+      '\u005e'                 // Basic_Latin
+    | '\u0060'                 // Basic_Latin
+    | '\u00a8'                 // Latin-1_Supplement
+    | '\u00af'                 // Latin-1_Supplement
+    | '\u00b4'                 // Latin-1_Supplement
+    | '\u00b8'                 // Latin-1_Supplement
+    | '\u02c2'..'\u02c5'       // Spacing_Modifier_Letters
+    | '\u02d2'..'\u02df'       // Spacing_Modifier_Letters
+    | '\u02e5'..'\u02eb'       // Spacing_Modifier_Letters
+    | '\u02ed'                 // Spacing_Modifier_Letters
+    | '\u02ef'..'\u02ff'       // Spacing_Modifier_Letters
+    | '\u0375'                 // Greek_and_Coptic
+    | '\u0384'..'\u0385'       // Greek_and_Coptic
+    | '\u1fbd'                 // Greek_Extended
+    | '\u1fbf'..'\u1fc1'       // Greek_Extended
+    | '\u1fcd'..'\u1fcf'       // Greek_Extended
+    | '\u1fdd'..'\u1fdf'       // Greek_Extended
+    | '\u1fed'..'\u1fef'       // Greek_Extended
+    | '\u1ffd'..'\u1ffe'       // Greek_Extended
+    | '\u309b'..'\u309c'       // Hiragana
+    | '\ua700'..'\ua716'       // Modifier_Tone_Letters
+    | '\ua720'..'\ua721'       // Latin_Extended-D
+    | '\ua789'..'\ua78a'       // Latin_Extended-D
+    | '\uab5b'                 // Latin_Extended-E
+    | '\ufbb2'..'\ufbc1'       // Arabic_Presentation_Forms-A
+    | '\uff3e'                 // Halfwidth_and_Fullwidth_Forms
+    | '\uff40'                 // Halfwidth_and_Fullwidth_Forms
+    | '\uffe3'                 // Halfwidth_and_Fullwidth_Forms
+;
+
+fragment CLASSIFY_Sm:
+      '\u002b'                 // Basic_Latin
+    | '\u003c'..'\u003e'       // Basic_Latin
+    | '\u007c'                 // Basic_Latin
+    | '\u007e'                 // Basic_Latin
+    | '\u00ac'                 // Latin-1_Supplement
+    | '\u00b1'                 // Latin-1_Supplement
+    | '\u00d7'                 // Latin-1_Supplement
+    | '\u00f7'                 // Latin-1_Supplement
+    | '\u03f6'                 // Greek_and_Coptic
+    | '\u0606'..'\u0608'       // Arabic
+    | '\u2044'                 // General_Punctuation
+    | '\u2052'                 // General_Punctuation
+    | '\u207a'..'\u207c'       // Superscripts_and_Subscripts
+    | '\u208a'..'\u208c'       // Superscripts_and_Subscripts
+    | '\u2118'                 // Letterlike_Symbols
+    | '\u2140'..'\u2144'       // Letterlike_Symbols
+    | '\u214b'                 // Letterlike_Symbols
+    | '\u2190'..'\u2194'       // Arrows
+    | '\u219a'..'\u219b'       // Arrows
+    | '\u21a0'                 // Arrows
+    | '\u21a3'                 // Arrows
+    | '\u21a6'                 // Arrows
+    | '\u21ae'                 // Arrows
+    | '\u21ce'..'\u21cf'       // Arrows
+    | '\u21d2'                 // Arrows
+    | '\u21d4'                 // Arrows
+    | '\u21f4'..'\u22ff'       // Arrows
+    | '\u2320'..'\u2321'       // Miscellaneous_Technical
+    | '\u237c'                 // Miscellaneous_Technical
+    | '\u239b'..'\u23b3'       // Miscellaneous_Technical
+    | '\u23dc'..'\u23e1'       // Miscellaneous_Technical
+    | '\u25b7'                 // Geometric_Shapes
+    | '\u25c1'                 // Geometric_Shapes
+    | '\u25f8'..'\u25ff'       // Geometric_Shapes
+    | '\u266f'                 // Miscellaneous_Symbols
+    | '\u27c0'..'\u27c4'       // Miscellaneous_Mathematical_Symbols-A
+    | '\u27c7'..'\u27e5'       // Miscellaneous_Mathematical_Symbols-A
+    | '\u27f0'..'\u27ff'       // Supplemental_Arrows-A
+    | '\u2900'..'\u2982'       // Supplemental_Arrows-B
+    | '\u2999'..'\u29d7'       // Miscellaneous_Mathematical_Symbols-B
+    | '\u29dc'..'\u29fb'       // Miscellaneous_Mathematical_Symbols-B
+    | '\u29fe'..'\u2aff'       // Miscellaneous_Mathematical_Symbols-B
+    | '\u2b30'..'\u2b44'       // Miscellaneous_Symbols_and_Arrows
+    | '\u2b47'..'\u2b4c'       // Miscellaneous_Symbols_and_Arrows
+    | '\ufb29'                 // Alphabetic_Presentation_Forms
+    | '\ufe62'                 // Small_Form_Variants
+    | '\ufe64'..'\ufe66'       // Small_Form_Variants
+    | '\uff0b'                 // Halfwidth_and_Fullwidth_Forms
+    | '\uff1c'..'\uff1e'       // Halfwidth_and_Fullwidth_Forms
+    | '\uff5c'                 // Halfwidth_and_Fullwidth_Forms
+    | '\uff5e'                 // Halfwidth_and_Fullwidth_Forms
+    | '\uffe2'                 // Halfwidth_and_Fullwidth_Forms
+    | '\uffe9'..'\uffec'       // Halfwidth_and_Fullwidth_Forms
+;
+
+fragment CLASSIFY_So:
+      '\u00a6'                 // Latin-1_Supplement
+    | '\u00a9'                 // Latin-1_Supplement
+    | '\u00ae'                 // Latin-1_Supplement
+    | '\u00b0'                 // Latin-1_Supplement
+    | '\u0482'                 // Cyrillic
+    | '\u058d'..'\u058e'       // Armenian
+    | '\u060e'..'\u060f'       // Arabic
+    | '\u06de'                 // Arabic
+    | '\u06e9'                 // Arabic
+    | '\u06fd'..'\u06fe'       // Arabic
+    | '\u07f6'                 // NKo
+    | '\u09fa'                 // Bengali
+    | '\u0b70'                 // Oriya
+    | '\u0bf3'..'\u0bf8'       // Tamil
+    | '\u0bfa'                 // Tamil
+    | '\u0c7f'                 // (Absent from Blocks.txt)
+    | '\u0d4f'                 // Malayalam
+    | '\u0d79'                 // Malayalam
+    | '\u0f01'..'\u0f03'       // Tibetan
+    | '\u0f13'                 // Tibetan
+    | '\u0f15'..'\u0f17'       // Tibetan
+    | '\u0f1a'..'\u0f1f'       // Tibetan
+    | '\u0f34'                 // Tibetan
+    | '\u0f36'                 // Tibetan
+    | '\u0f38'                 // Tibetan
+    | '\u0fbe'..'\u0fc5'       // Tibetan
+    | '\u0fc7'..'\u0fcc'       // Tibetan
+    | '\u0fce'..'\u0fcf'       // Tibetan
+    | '\u0fd5'..'\u0fd8'       // Tibetan
+    | '\u109e'..'\u109f'       // Myanmar
+    | '\u1390'..'\u1399'       // Ethiopic_Supplement
+    | '\u1940'                 // Limbu
+    | '\u19de'..'\u19ff'       // New_Tai_Lue
+    | '\u1b61'..'\u1b6a'       // Balinese
+    | '\u1b74'..'\u1b7c'       // Balinese
+    | '\u2100'..'\u2101'       // Letterlike_Symbols
+    | '\u2103'..'\u2106'       // Letterlike_Symbols
+    | '\u2108'..'\u2109'       // Letterlike_Symbols
+    | '\u2114'                 // Letterlike_Symbols
+    | '\u2116'..'\u2117'       // Letterlike_Symbols
+    | '\u211e'..'\u2123'       // Letterlike_Symbols
+    | '\u2125'                 // Letterlike_Symbols
+    | '\u2127'                 // Letterlike_Symbols
+    | '\u2129'                 // Letterlike_Symbols
+    | '\u212e'                 // Letterlike_Symbols
+    | '\u213a'..'\u213b'       // Letterlike_Symbols
+    | '\u214a'                 // Letterlike_Symbols
+    | '\u214c'..'\u214d'       // Letterlike_Symbols
+    | '\u214f'                 // (Absent from Blocks.txt)
+    | '\u218a'..'\u218b'       // Number_Forms
+    | '\u2195'..'\u2199'       // Arrows
+    | '\u219c'..'\u219f'       // Arrows
+    | '\u21a1'..'\u21a2'       // Arrows
+    | '\u21a4'..'\u21a5'       // Arrows
+    | '\u21a7'..'\u21ad'       // Arrows
+    | '\u21af'..'\u21cd'       // Arrows
+    | '\u21d0'..'\u21d1'       // Arrows
+    | '\u21d3'                 // Arrows
+    | '\u21d5'..'\u21f3'       // Arrows
+    | '\u2300'..'\u2307'       // Miscellaneous_Technical
+    | '\u230c'..'\u231f'       // Miscellaneous_Technical
+    | '\u2322'..'\u2328'       // Miscellaneous_Technical
+    | '\u232b'..'\u237b'       // Miscellaneous_Technical
+    | '\u237d'..'\u239a'       // Miscellaneous_Technical
+    | '\u23b4'..'\u23db'       // Miscellaneous_Technical
+    | '\u23e2'..'\u23fe'       // Miscellaneous_Technical
+    | '\u2400'..'\u2426'       // Control_Pictures
+    | '\u2440'..'\u244a'       // Optical_Character_Recognition
+    | '\u249c'..'\u24e9'       // Enclosed_Alphanumerics
+    | '\u2500'..'\u25b6'       // Box_Drawing
+    | '\u25b8'..'\u25c0'       // Geometric_Shapes
+    | '\u25c2'..'\u25f7'       // Geometric_Shapes
+    | '\u2600'..'\u266e'       // Miscellaneous_Symbols
+    | '\u2670'..'\u2767'       // Miscellaneous_Symbols
+    | '\u2794'..'\u27bf'       // Dingbats
+    | '\u2800'..'\u28ff'       // Braille_Patterns
+    | '\u2b00'..'\u2b2f'       // Miscellaneous_Symbols_and_Arrows
+    | '\u2b45'..'\u2b46'       // Miscellaneous_Symbols_and_Arrows
+    | '\u2b4d'..'\u2b73'       // Miscellaneous_Symbols_and_Arrows
+    | '\u2b76'..'\u2b95'       // Miscellaneous_Symbols_and_Arrows
+    | '\u2b98'..'\u2bb9'       // Miscellaneous_Symbols_and_Arrows
+    | '\u2bbd'..'\u2bc8'       // Miscellaneous_Symbols_and_Arrows
+    | '\u2bca'..'\u2bd1'       // Miscellaneous_Symbols_and_Arrows
+    | '\u2bec'..'\u2bef'       // Miscellaneous_Symbols_and_Arrows
+    | '\u2ce5'..'\u2cea'       // Coptic
+    | '\u2e80'..'\u2e99'       // CJK_Radicals_Supplement
+    | '\u2e9b'..'\u2ef3'       // CJK_Radicals_Supplement
+    | '\u2f00'..'\u2fd5'       // Kangxi_Radicals
+    | '\u2ff0'..'\u2ffb'       // Ideographic_Description_Characters
+    | '\u3004'                 // CJK_Symbols_and_Punctuation
+    | '\u3012'..'\u3013'       // CJK_Symbols_and_Punctuation
+    | '\u3020'                 // CJK_Symbols_and_Punctuation
+    | '\u3036'..'\u3037'       // CJK_Symbols_and_Punctuation
+    | '\u303e'..'\u303f'       // CJK_Symbols_and_Punctuation
+    | '\u3190'..'\u3191'       // Kanbun
+    | '\u3196'..'\u319f'       // Kanbun
+    | '\u31c0'..'\u31e3'       // CJK_Strokes
+    | '\u3200'..'\u321e'       // Enclosed_CJK_Letters_and_Months
+    | '\u322a'..'\u3247'       // Enclosed_CJK_Letters_and_Months
+    | '\u3250'                 // Enclosed_CJK_Letters_and_Months
+    | '\u3260'..'\u327f'       // Enclosed_CJK_Letters_and_Months
+    | '\u328a'..'\u32b0'       // Enclosed_CJK_Letters_and_Months
+    | '\u32c0'..'\u32fe'       // Enclosed_CJK_Letters_and_Months
+    | '\u3300'..'\u33ff'       // CJK_Compatibility
+    | '\u4dc0'..'\u4dff'       // Yijing_Hexagram_Symbols
+    | '\ua490'..'\ua4c6'       // Yi_Radicals
+    | '\ua828'..'\ua82b'       // Syloti_Nagri
+    | '\ua836'..'\ua837'       // Common_Indic_Number_Forms
+    | '\ua839'                 // Common_Indic_Number_Forms
+    | '\uaa77'..'\uaa79'       // Myanmar_Extended-A
+    | '\ufdfd'                 // Arabic_Presentation_Forms-A
+    | '\uffe4'                 // Halfwidth_and_Fullwidth_Forms
+    | '\uffe8'                 // Halfwidth_and_Fullwidth_Forms
+    | '\uffed'..'\uffee'       // Halfwidth_and_Fullwidth_Forms
+    | '\ufffc'..'\ufffd'       // Specials
 ;

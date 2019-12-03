@@ -309,31 +309,48 @@ ASCSYMBOL : '!' | '#' | '$' | '%' | '&' | '*' | '+'
 // RESERVEDOP : '..' | ':' | '::' | '=' | '\\' 
 //              | '|' | '<-' | '->' | '@' | '~' | '=>';
 
-fragment DIGIT : ASCDIGIT;
+fragment DIGIT : ASCDIGIT | UNIDIGIT;
 
 fragment ASCDIGIT : [0-9];
-// fragment UNIDIGIT:
-//     | [\u0030-\u0039]
-//     | [\u0660-\u0669]
-//     | [\u06F0-\u06F9]
-//     | [\u0966-\u096F]
-//     | [\u09E6-\u09EF]
-//     | [\u0A66-\u0A6F]
-//     | [\u0AE6-\u0AEF]
-//     | [\u0B66-\u0B6F]
-//     | [\u0BE7-\u0BEF]
-//     | [\u0C66-\u0C6F]
-//     | [\u0CE6-\u0CEF]
-//     | [\u0D66-\u0D6F]
-//     | [\u0E50-\u0E59]
-//     | [\u0ED0-\u0ED9]
-//     | [\u0F20-\u0F29]
-//     | [\u1040-\u1049]
-//     | [\u1369-\u1371]
-//     | [\u17E0-\u17E9]
-//     | [\u1810-\u1819]
-//     | [\uFF10-\uFF19]
-//     ;
+fragment UNIDIGIT
+    // : '\u0030'..'\u0039'       // Basic_Latin
+    : '\u0660'..'\u0669'       // Arabic
+    | '\u06f0'..'\u06f9'       // Arabic
+    | '\u07c0'..'\u07c9'       // NKo
+    | '\u0966'..'\u096f'       // Devanagari
+    | '\u09e6'..'\u09ef'       // Bengali
+    | '\u0a66'..'\u0a6f'       // Gurmukhi
+    | '\u0ae6'..'\u0aef'       // Gujarati
+    | '\u0b66'..'\u0b6f'       // Oriya
+    | '\u0be6'..'\u0bef'       // Tamil
+    | '\u0c66'..'\u0c6f'       // Telugu
+    | '\u0ce6'..'\u0cef'       // Kannada
+    | '\u0d66'..'\u0d6f'       // Malayalam
+    | '\u0de6'..'\u0def'       // Sinhala
+    | '\u0e50'..'\u0e59'       // Thai
+    | '\u0ed0'..'\u0ed9'       // Lao
+    | '\u0f20'..'\u0f29'       // Tibetan
+    | '\u1040'..'\u1049'       // Myanmar
+    | '\u1090'..'\u1099'       // Myanmar
+    | '\u17e0'..'\u17e9'       // Khmer
+    | '\u1810'..'\u1819'       // Mongolian
+    | '\u1946'..'\u194f'       // Limbu
+    | '\u19d0'..'\u19d9'       // New_Tai_Lue
+    | '\u1a80'..'\u1a89'       // Tai_Tham
+    | '\u1a90'..'\u1a99'       // Tai_Tham
+    | '\u1b50'..'\u1b59'       // Balinese
+    | '\u1bb0'..'\u1bb9'       // Sundanese
+    | '\u1c40'..'\u1c49'       // Lepcha
+    | '\u1c50'..'\u1c59'       // Ol_Chiki
+    | '\ua620'..'\ua629'       // Vai
+    | '\ua8d0'..'\ua8d9'       // Saurashtra
+    | '\ua900'..'\ua909'       // Kayah_Li
+    | '\ua9d0'..'\ua9d9'       // Javanese
+    | '\ua9f0'..'\ua9f9'       // Myanmar_Extended-B
+    | '\uaa50'..'\uaa59'       // Cham
+    | '\uabf0'..'\uabf9'       // Meetei_Mayek
+    | '\uff10'..'\uff19'       // Halfwidth_and_Fullwidth_Forms
+    ;
 
 
 DECIMAL : DIGIT+;
@@ -344,8 +361,8 @@ fragment LARGE : ASCLARGE | UNILARGE;
 
 fragment ASCLARGE : [A-Z];
 fragment UNILARGE
-    : '\u0041'..'\u005a'       // Basic_Latin
-    | '\u00c0'..'\u00d6'       // Latin-1_Supplement
+    // : '\u0041'..'\u005a'       // Basic_Latin
+    : '\u00c0'..'\u00d6'       // Latin-1_Supplement
     | '\u00d8'..'\u00de'       // Latin-1_Supplement
     | '\u0100'                 // Latin_Extended-A
     | '\u0102'                 // Latin_Extended-A
@@ -940,8 +957,8 @@ fragment UNILARGE
 fragment SMALL : ASCSMALL | UNISMALL;
 fragment ASCSMALL : [_a-z];
 fragment UNISMALL 
-    : '\u0061'..'\u007a'       // Basic_Latin
-    | '\u00b5'                 // Latin-1_Supplement
+    // : '\u0061'..'\u007a'       // Basic_Latin
+    : '\u00b5'                 // Latin-1_Supplement
     | '\u00df'..'\u00f6'       // Latin-1_Supplement
     | '\u00f8'..'\u00ff'       // Latin-1_Supplement
     | '\u0101'                 // Latin_Extended-A

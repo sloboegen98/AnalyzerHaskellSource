@@ -83,6 +83,7 @@ decl
 	: 
 	gendecl
 	| ((funlhs | pat) rhs)
+	| semi+
 	;
 
 cdecls
@@ -323,7 +324,7 @@ qual
 
 alts
 	:
-	open (alt semi)+ close
+	open (alt semi+)+ close
 	;
 
 alt

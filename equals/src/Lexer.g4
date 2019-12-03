@@ -92,6 +92,8 @@ lexer grammar Lexer;
         }
 
         while (indentCount < getSavedIndent()) {
+            // std::cout << indentCount << ' ' << getSavedIndent() << std::endl;
+
             if (!indentStack.empty() && nested_level > 0) {
                 indentStack.pop();
                 nested_level--;
@@ -123,6 +125,7 @@ lexer grammar Lexer;
         int st_ind = next->getStartIndex();
 
         // std::cout << next->toString() << std::endl;
+
         if (next->getType() == OCURLY) {
             if (prev_was_keyword) { 
                 nested_level--;
@@ -145,6 +148,18 @@ lexer grammar Lexer;
             ignore_indent = false;
             prev_was_endl = (next->getType() == WHERE || next->getType() == DO || next->getType() == LET || next->getType() == OF);
         }
+
+        if (pendingDent && prev_was_keyword
+            && !ignore_indent
+            && indentCount <= getSavedIndent()
+            && next->getType() != NEWLINE
+            && next->getType() != WS) {
+            
+            tokenQueue.push_back(createToken(VOCURLY, "VOCURLY", st_ind));
+            prev_was_keyword = false;
+            prev_was_endl = true;
+        }
+
 
         if (pendingDent && prev_was_endl
             && !ignore_indent
@@ -181,6 +196,7 @@ lexer grammar Lexer;
             prev_was_endl = false;
             if (indentCount == start_indent) pendingDent = false;
         }
+
 
         if (pendingDent && prev_was_keyword
             && !ignore_indent

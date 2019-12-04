@@ -429,7 +429,7 @@ ascSymbol: '!' | '#' | '$' | '%' | '&' | '*' | '+'
 
 // fix [:]// 
 varsym : ascSymbol+;
-consym : ':' ascSymbol;
+consym : ':' ascSymbol*;
 //
 
 tyvar : varid;

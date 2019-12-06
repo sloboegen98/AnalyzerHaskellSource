@@ -341,7 +341,7 @@ gdpat
 // check!
 stmts
 	:
-	open (stmt (WHERE decls)?)* exp (WHERE decls)? semi* close
+	open (stmt)* exp semi* close
 	;
 
 stmt

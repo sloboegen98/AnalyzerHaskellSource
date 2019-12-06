@@ -146,7 +146,7 @@ lexer grammar Lexer;
 
         if (ignore_indent && (next->getType() == WHERE || next->getType() == DO || next->getType() == LET || next->getType() == OF || next->getType() == CCURLY)) {
             ignore_indent = false;
-            prev_was_endl = (next->getType() == WHERE || next->getType() == DO || next->getType() == LET || next->getType() == OF);
+            // prev_was_endl = true;
         }
 
         if (pendingDent && prev_was_keyword
@@ -169,7 +169,10 @@ lexer grammar Lexer;
             && next->getType() != LET
             && next->getType() != DO
             && next->getType() != OF
+            && next->getType() != CCURLY
             && next->getType() != EOF) {
+
+            std::cout << next->toString() << std::endl;
 
             while (nested_level > indentStack.size()) {
                 if (nested_level > 0)
@@ -228,6 +231,16 @@ lexer grammar Lexer;
             prev_was_keyword = true;
             prev_was_endl = false;
             last_key_word = next->getText();
+
+            // check!
+            if (next->getType() == WHERE) {
+                if (!indentStack.empty() && indentStack.top().first == "do") {
+                    tokenQueue.push_back(createToken(SEMI, "SEMI", st_ind));
+                    tokenQueue.push_back(createToken(VCCURLY, "VCCURLY", st_ind));
+                    indentStack.pop();
+                    nested_level--;
+                }
+            } 
         }
 
         if (next != nullptr && next->getType() == OCURLY) {

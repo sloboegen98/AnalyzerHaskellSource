@@ -418,7 +418,7 @@ literal : integer | pfloat | pchar | pstring;
 // | STRING | CHAR ;
 special : '(' | ')' | ',' | ';' | '[' | ']' | '`' | '{' | '}';
 
-varid : VARID;
+varid : VARID | AS | HIDING;
 conid : CONID;
 
 symbol: ascSymbol;

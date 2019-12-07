@@ -323,6 +323,10 @@ WHERE    : 'where'   ;
 WILDCARD : '_'       ;
 QUALIFIED: 'qualified';
 
+// local tokens 
+AS : 'as';
+HIDING : 'hiding';
+
 CHAR : '\'' (' ' | DECIMAL | SMALL | LARGE 
               | ASCSYMBOL | DIGIT | ',' | ';' | '(' | ')' 
               | '[' | ']' | '`' | '"') '\'';

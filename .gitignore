@@ -12,3 +12,6 @@ tree.dot
 result/
 src/.antlr
 .vscode
+student*
+out*
+ans.txt

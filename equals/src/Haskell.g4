@@ -12,8 +12,9 @@ grammar Haskell;
 @lexer::members {
 
     typedef antlr4::CommonToken CommonToken;
-    typedef antlr4::Token       Token;
+    typedef antlr4::Token Token;
 
+    // Helpful struct for Token
     struct initIndent {
         int getStartIndex = 0;
         int getLine = 0;
@@ -29,17 +30,24 @@ grammar Haskell;
     }
 
     bool pendingDent = true;
+
+    // Current indent
     int indentCount = 0;
+    // A queue where extra tokens are pushed on
     std::list < std::unique_ptr<Token> > tokenQueue;
+    // The stack that keeps key word and indent after that
     std::stack <std::pair <std::string, int> > indentStack;
+    // Pointer keeps last indent token 
     initIndent* initialIndentToken = nullptr;
     std::string last_key_word;
 
     bool prev_was_endl = false;
     bool prev_was_keyword = false;
+    // Need, for example in {}-block
     bool ignore_indent = false;
-
+    // Haskell saves indent before first symbol as null indent
     int start_indent = -1;
+    // Count of "active" key words in this moment
     int nested_level = 0;
 
     int getSavedIndent() { return indentStack.empty() ? start_indent : indentStack.top().second; }
@@ -55,7 +63,7 @@ grammar Haskell;
             token->setStopIndex(start_ind - 1);
         } 
         return token;
-    }   
+    } 
 
     void processINToken(int st_ind) {
         if (indentStack.empty()) return;
@@ -92,8 +100,6 @@ grammar Haskell;
         }
 
         while (indentCount < getSavedIndent()) {
-            // std::cout << indentCount << ' ' << getSavedIndent() << std::endl;
-
             if (!indentStack.empty() && nested_level > 0) {
                 indentStack.pop();
                 nested_level--;
@@ -110,6 +116,9 @@ grammar Haskell;
         start_indent = -1;
     }
 
+    // Algorithm's description here:
+    // https://www.haskell.org/onlinereport/haskell2010/haskellch10.html
+    // https://en.wikibooks.org/wiki/Haskell/Indentation
     std::unique_ptr <Token> nextToken() override {
         if (!tokenQueue.empty()) {
             auto ptr = std::move(tokenQueue.front());
@@ -119,12 +128,11 @@ grammar Haskell;
 
         auto next = Lexer::nextToken();
 
-        if (start_indent == -1 && (next->getType() != NEWLINE && next->getType() != WS && next->getType() != TAB))
+        if (start_indent == -1 && (next->getType() != NEWLINE && next->getType() != WS && next->getType() != TAB)) {
             start_indent = next->getCharPositionInLine();
+        }
 
         int st_ind = next->getStartIndex();
-
-        // std::cout << next->toString() << std::endl;
 
         if (next->getType() == OCURLY) {
             if (prev_was_keyword) { 
@@ -152,7 +160,6 @@ grammar Haskell;
             || next->getType() == CCURLY)
            ) {
             ignore_indent = false;
-            // prev_was_endl = true;
         }
 
         if (pendingDent 
@@ -178,8 +185,6 @@ grammar Haskell;
             && next->getType() != OF
             && next->getType() != CCURLY
             && next->getType() != EOF) {
-
-            std::cout << next->toString() << std::endl;
 
             while (nested_level > indentStack.size()) {
                 if (nested_level > 0)
@@ -234,12 +239,12 @@ grammar Haskell;
         }
 
         if (next->getType() == WHERE || next->getType() == LET || next->getType() == DO || next->getType() == OF) {
-            nested_level++; // if next will be OCURLY need to decrement nested_level
+            // if next will be OCURLY need to decrement nested_level
+            nested_level++; 
             prev_was_keyword = true;
             prev_was_endl = false;
             last_key_word = next->getText();
 
-            // check!
             if (next->getType() == WHERE) {
                 if (!indentStack.empty() && indentStack.top().first == "do") {
                     tokenQueue.push_back(createToken(SEMI, "SEMI", st_ind));

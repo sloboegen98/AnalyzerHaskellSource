@@ -4,8 +4,8 @@
 #include <strstream>
 
 #include "antlr4-runtime.h"
-#include "DataLexer.h"
-#include "DataParser.h"
+#include "HaskellLexer.h"
+#include "HaskellParser.h"
 
 #include "printer/printer.h"
 
@@ -29,7 +29,7 @@ int main(int argc, char *argv[]) {
     std::ifstream str;
     str.open(argv[1]);
     antlr4::ANTLRInputStream input(str);
-    DataLexer lexer(&input);
+    HaskellLexer lexer(&input);
     antlr4::CommonTokenStream tokens(&lexer);
 //
     MyParserErrorListener errorListner;
@@ -40,17 +40,13 @@ int main(int argc, char *argv[]) {
     //  std::cout << token->toString() << std::endl;
     // }
     
-    DataParser parser(&tokens);
+    HaskellParser parser(&tokens);
     // parser.removeErrorListeners();
     // parser.addErrorListener(&errorListner);
     // try {
         antlr4::tree::ParseTree* tree = parser.module();
         std::cout << tree->toStringTree(&parser) << std::endl;
-        DotPrinter::print(tree, "tree.dot", "");
-
-        for (auto& fname : parser.functions) {
-            std::cout << fname << std::endl;
-        }
+        // DotPrinter::print(tree, "tree.dot", "");
 
     //     return 0;
     // } catch (std::invalid_argument &e) {

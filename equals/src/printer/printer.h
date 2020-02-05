@@ -5,8 +5,8 @@
 #include <ostream>
 
 #include "antlr4-runtime.h"
-#include "../DataLexer.h"
-#include "../DataParser.h"
+#include "../HaskellLexer.h"
+#include "../HaskellParser.h"
 
 using antlr4::tree::ParseTree;
 

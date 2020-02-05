@@ -1,6 +1,6 @@
 ANTLR 	= java -Xmx500M -cp "/usr/local/lib/antlr-4.7.1-complete.jar:$(CLASSPATH)" org.antlr.v4.Tool
 GRUN    = java -Xmx500M -cp "/usr/local/lib/antlr-4.7.1-complete.jar:$(CLASSPATH)" org.antlr.v4.gui.TestRig
-GRAMMAR = Data
+GRAMMAR = Haskell
 TEST 	= file.txt
 ROOT	= file
 LIBPATH = -L/usr/local/lib
@@ -22,6 +22,6 @@ test:
 	./test/run.sh
 
 clean:
-	rm -rf tree.dot src/Data*.cpp src/Data*.h result/
+	rm -rf tree.dot src/Haskell*.cpp src/Haskell*.h result/
 
 .PHONY: all clean test

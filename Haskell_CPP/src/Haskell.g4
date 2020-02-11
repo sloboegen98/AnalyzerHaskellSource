@@ -66,16 +66,18 @@ grammar Haskell;
     } 
 
     void processINToken(int st_ind) {
-        if (indentStack.empty()) return;
+        if (indentStack.empty()) {
+            return;
+        }
 
-        while (((indentStack.top()).first) != "let") {
+        while (!indentStack.empty() && indentStack.top().first != "let") {
             tokenQueue.push_back(createToken(SEMI, "SEMI", st_ind));
             tokenQueue.push_back(createToken(VCCURLY, "VCCURLY", st_ind));
             nested_level--;
             indentStack.pop();
         }
 
-        if ((indentStack.top()).first == "let") {
+        if (!indentStack.empty() && (indentStack.top().first == "let")) {
             tokenQueue.push_back(createToken(SEMI, "SEMI", st_ind));
             tokenQueue.push_back(createToken(VCCURLY, "VCCURLY", st_ind));
             nested_level--;
@@ -127,6 +129,7 @@ grammar Haskell;
         }
 
         auto next = Lexer::nextToken();
+        std::cout << next->toString() << std::endl;
 
         if (start_indent == -1 && (next->getType() != NEWLINE && next->getType() != WS && next->getType() != TAB)) {
             start_indent = next->getCharPositionInLine();
@@ -144,7 +147,8 @@ grammar Haskell;
             prev_was_endl = false;
         }
 
-        if (prev_was_keyword && !prev_was_endl && 
+        if (prev_was_keyword &&
+             !prev_was_endl && 
             (next->getType() != WS && next->getType() != NEWLINE 
             && next->getType() != TAB && next->getType() != OCURLY)) {
             prev_was_keyword = false;
@@ -179,8 +183,9 @@ grammar Haskell;
             && !ignore_indent
             && indentCount <= getSavedIndent()
             && next->getType() != NEWLINE
+            && next->getType() != WS
             && next->getType() != WHERE
-            && next->getType() != LET
+            && next->getType() != IN
             && next->getType() != DO
             && next->getType() != OF
             && next->getType() != CCURLY

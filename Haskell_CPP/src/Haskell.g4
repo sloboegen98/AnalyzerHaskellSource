@@ -569,7 +569,7 @@ lexp
 	('\\' apat+ '->' exp)
 	| (LET decls IN exp)
 	| (IF exp semi? THEN exp semi? ELSE exp)
-    // | (IF ifgdpats)
+    | (IF ifgdpats)
 	| (CASE exp OF alts)
 	| (DO stmts)
 	| fexp
@@ -619,14 +619,14 @@ gdpats
     gdpat+
     ;
 
-// ifgdpats
-//     :
-//     open? gdpats close
-//     ;
+ifgdpats
+    :
+    open? gdpats close
+    ;
 
 gdpat
     :
-	guards '->' exp
+	'|' guards '->' exp
 	;
 
 stmts

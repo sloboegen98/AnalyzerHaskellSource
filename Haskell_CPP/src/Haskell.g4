@@ -619,9 +619,14 @@ gdpats
     gdpat+
     ;
 
+// In ghc parser on GitLab second rule is 'gdpats close'
+// Unclearly possible errors with this implemmentation
+
+// Now extension is always works
 ifgdpats
     :
-    open? gdpats close
+    '{' gdpats '}'
+    | gdpats
     ;
 
 gdpat

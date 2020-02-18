@@ -531,12 +531,17 @@ rhs
 
 gdrhs
 	:
-	(guards '=' exp)+
+    gdrh+
 	;
+
+gdrh
+    :
+	'|' guards '=' exp
+    ;
 
 guards
 	:
-	'|' guard (',' guard)*
+	guard (',' guard)*
 	;
 
 guard
@@ -564,6 +569,7 @@ lexp
 	('\\' apat+ '->' exp)
 	| (LET decls IN exp)
 	| (IF exp semi? THEN exp semi? ELSE exp)
+    // | (IF ifgdpats)
 	| (CASE exp OF alts)
 	| (DO stmts)
 	| fexp
@@ -612,6 +618,11 @@ gdpats
 	:
     gdpat+
     ;
+
+// ifgdpats
+//     :
+//     open? gdpats close
+//     ;
 
 gdpat
     :

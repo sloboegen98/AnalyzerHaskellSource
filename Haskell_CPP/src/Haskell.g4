@@ -605,12 +605,17 @@ alts
 alt
 	:
 	(pat '->' exp (WHERE decls)?)
-	| (pat gdpat (WHERE decls)?)
+	| (pat gdpats (WHERE decls)?)
 	;
 
-gdpat
+gdpats
 	:
-	(guards '->' exp)+
+    gdpat+
+    ;
+
+gdpat
+    :
+	guards '->' exp
 	;
 
 stmts

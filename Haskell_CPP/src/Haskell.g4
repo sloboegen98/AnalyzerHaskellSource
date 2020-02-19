@@ -286,12 +286,22 @@ grammar Haskell;
 }
 
 @parser::members {
-    bool MultiWayIf = false;
+    bool MultiWayIf = true;
 }
 
 // parser rules
 
-module : ((MODULE modid exports? WHERE open body close semi*) | body) EOF;
+module : pragmas? ((MODULE modid exports? WHERE open body close semi*) | body) EOF;
+
+pragmas
+    :
+    pragma+
+    ;
+
+pragma
+    :
+    PRAGMA
+    ;
 
 body
 	:
@@ -573,7 +583,7 @@ lexp
 	('\\' apat+ '->' exp)
 	| (LET decls IN exp)
 	| (IF exp semi? THEN exp semi? ELSE exp)
-    | ({true}? IF ifgdpats)
+    | ({MultiWayIf}? IF ifgdpats)
 	| (CASE exp OF alts)
 	| (DO stmts)
 	| fexp
@@ -626,7 +636,7 @@ gdpats
 // In ghc parser on GitLab second rule is 'gdpats close'
 // Unclearly possible errors with this implemmentation
 
-// Now extension is always works
+// Now extension is always works (follow semantic predicate in 'lexp' rule)
 ifgdpats
     :
     '{' gdpats '}'
@@ -771,7 +781,9 @@ WS : [\u0020\u00a0\u1680\u2000\u200a\u202f\u205f\u3000]+ {
     }
 } ;
 
-COMMENT : '--' (~[\r\n])* -> skip;
+PRAGMA   : '{-#' 'LANGUAGE' CONID (',' CONID)* '#-}'; 
+
+COMMENT  : '--' (~[\r\n])* -> skip;
 NCOMMENT : '{-' .*? '-}' -> skip;
 
 OCURLY : '{';

@@ -287,6 +287,7 @@ grammar Haskell;
 
 @parser::members {
     bool MultiWayIf = true;
+    bool MagicHash  = true;
 }
 
 // parser rules
@@ -355,14 +356,14 @@ topdecls : ((topdecl semi+) | NEWLINE | semi)+;
 
 topdecl 
 	: 
-	(TYPE simpletype '=' type)
+    (TYPE simpletype '=' type)
     | (DATA (typecontext '=>')? simpletype ('=' constrs)? deriving?)
-	| (NEWTYPE (typecontext '=>')? simpletype '=' newconstr deriving?)
-	| (CLASS (scontext '=>')? tycls tyvar (WHERE cdecls)?)
-	| (INSTANCE (scontext '=>')? qtycls inst (WHERE idecls)?)
-	| (DEFAULT '(' (type (',' type)*)? ')' )
-	| (FOREIGN fdecl)
-	| decl;
+    | (NEWTYPE (typecontext '=>')? simpletype '=' newconstr deriving?)
+    | (CLASS (scontext '=>')? tycls tyvar (WHERE cdecls)?)
+    | (INSTANCE (scontext '=>')? qtycls inst (WHERE idecls)?)
+    | (DEFAULT '(' (type (',' type)*)? ')' )
+    | (FOREIGN fdecl)
+    | decl;
 
 decls 
 	:
@@ -724,8 +725,8 @@ semi : ';' | SEMI;
 literal : integer | pfloat | pchar | pstring;
 special : '(' | ')' | ',' | ';' | '[' | ']' | '`' | '{' | '}';
 
-varid : VARID | AS | HIDING;
-conid : CONID;
+varid : (VARID | AS | HIDING) ({MagicHash}?'#'*);
+conid : CONID ({MagicHash}? '#'*);
 
 symbol: ascSymbol;
 ascSymbol: '!' | '#' | '$' | '%' | '&' | '*' | '+'

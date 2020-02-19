@@ -285,6 +285,10 @@ grammar Haskell;
     }
 }
 
+@parser::members {
+    bool MultiWayIf = false;
+}
+
 // parser rules
 
 module : ((MODULE modid exports? WHERE open body close semi*) | body) EOF;
@@ -342,8 +346,8 @@ topdecls : ((topdecl semi+) | NEWLINE | semi)+;
 topdecl 
 	: 
 	(TYPE simpletype '=' type)
-    | (DATA (context '=>')? simpletype ('=' constrs)? deriving?)
-	| (NEWTYPE (context '=>')? simpletype '=' newconstr deriving?)
+    | (DATA (typecontext '=>')? simpletype ('=' constrs)? deriving?)
+	| (NEWTYPE (typecontext '=>')? simpletype '=' newconstr deriving?)
 	| (CLASS (scontext '=>')? tycls tyvar (WHERE cdecls)?)
 	| (INSTANCE (scontext '=>')? qtycls inst (WHERE idecls)?)
 	| (DEFAULT '(' (type (',' type)*)? ')' )
@@ -385,7 +389,7 @@ idecl
 
 gendecl	
 	:
-	vars '::' (context '=>')? type
+	vars '::' (typecontext '=>')? type
 	| (fixity (DECIMAL)? ops)
 	;
 
@@ -432,7 +436,7 @@ gtycon
 	| ( '(' ',' '{' ',' '}' ')' )
 	;
 
-context
+typecontext
 	:
 	cls
 	| ( '(' cls (',' cls)* ')' )
@@ -553,7 +557,7 @@ guard
 
 exp	
 	:
-	(infixexp '::' (context '=>')? type)
+	(infixexp '::' (typecontext '=>')? type)
 	| infixexp 
 	;
 
@@ -569,7 +573,7 @@ lexp
 	('\\' apat+ '->' exp)
 	| (LET decls IN exp)
 	| (IF exp semi? THEN exp semi? ELSE exp)
-    | (IF ifgdpats)
+    | ({true}? IF ifgdpats)
 	| (CASE exp OF alts)
 	| (DO stmts)
 	| fexp

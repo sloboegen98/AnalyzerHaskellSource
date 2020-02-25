@@ -308,57 +308,57 @@ extension
     ;
 
 body
-	:
-	(impdecls topdecls)
-	| impdecls
-	| topdecls
-	;
+    :
+    (impdecls topdecls)
+    | impdecls
+    | topdecls
+    ;
 
 impdecls
-	:
-	(impdecl | NEWLINE | semi)+
-	;
+    :
+    (impdecl | NEWLINE | semi)+
+    ;
 
 exports
-	:
-	'(' (exprt (',' exprt)*)? ','? ')'
-	;
+    :
+    '(' (exprt (',' exprt)*)? ','? ')'
+    ;
 
 exprt
-	:
-	qvar
-	| ( qtycon ( ('(' '..' ')') | ('(' (cname (',' cname)*)? ')') )? )
-	| ( qtycls ( ('(' '..' ')') | ('(' (qvar (',' qvar)*)? ')') )? )
-	| ( MODULE modid )
-	;
+    :
+    qvar
+    | ( qtycon ( ('(' '..' ')') | ('(' (cname (',' cname)*)? ')') )? )
+    | ( qtycls ( ('(' '..' ')') | ('(' (qvar (',' qvar)*)? ')') )? )
+    | ( MODULE modid )
+    ;
 
 impdecl
-	:
-	IMPORT QUALIFIED? modid ('as' modid)? impspec? semi+
-	;
+    :
+    IMPORT QUALIFIED? modid ('as' modid)? impspec? semi+
+    ;
 
 impspec
-	:
-	('(' (himport (',' himport)* ','?)? ')')
-	| ( 'hiding' '(' (himport (',' himport)* ','?)? ')' )
- 	;
+    :
+    ('(' (himport (',' himport)* ','?)? ')')
+    | ( 'hiding' '(' (himport (',' himport)* ','?)? ')' )
+     ;
 
 himport
-	:
-	var
-	| ( tycon ( ('(' '..' ')') | ('(' (cname (',' cname)*)? ')') )? )
-	| ( tycls ( ('(' '..' ')') | ('(' (var (',' var)*)? ')') )? )
-	;
+    :
+    var
+    | ( tycon ( ('(' '..' ')') | ('(' (cname (',' cname)*)? ')') )? )
+    | ( tycls ( ('(' '..' ')') | ('(' (var (',' var)*)? ')') )? )
+    ;
 
 cname
-	:
-	var | con
-	;
+    :
+    var | con
+    ;
 
 topdecls : ((topdecl semi+) | NEWLINE | semi)+;
 
 topdecl
-	:
+    :
     (TYPE simpletype '=' type)
     | (DATA (typecontext '=>')? simpletype ('=' constrs)? deriving?)
     | (NEWTYPE (typecontext '=>')? simpletype '=' newconstr deriving?)
@@ -369,19 +369,19 @@ topdecl
     | decl;
 
 decls
-	:
-	open ((decl semi+)* decl semi*)? close
-	;
+    :
+    open ((decl semi+)* decl semi*)? close
+    ;
 
 decl
-	:
+    :
     '{-#' 'INLINE' qvar '#-}'
     | '{-#' 'NOINLINE' qvar '#-}'
     | '{-#' 'SPECIALIZE' specs '-#}'
     | gendecl
-	| ((funlhs | pat) rhs)
-	| semi+
-	;
+    | ((funlhs | pat) rhs)
+    | semi+
+    ;
 
 specs
     :
@@ -394,259 +394,259 @@ spec
     ;
 
 cdecls
-	:
-	open ((cdecl semi+)* cdecl semi*)? close
-	;
+    :
+    open ((cdecl semi+)* cdecl semi*)? close
+    ;
 
 cdecl
-	:
-	gendecl
-	| ((funlhs | var) rhs)
-	;
+    :
+    gendecl
+    | ((funlhs | var) rhs)
+    ;
 
 idecls
-	:
-	open ((idecl semi+)* idecl semi*)? close
-	;
+    :
+    open ((idecl semi+)* idecl semi*)? close
+    ;
 
 idecl
-	:
-	(funlhs | var) rhs
-	;
+    :
+    (funlhs | var) rhs
+    ;
 
 gendecl
-	:
-	vars '::' (typecontext '=>')? type
-	| (fixity (DECIMAL)? ops)
-	;
+    :
+    vars '::' (typecontext '=>')? type
+    | (fixity (DECIMAL)? ops)
+    ;
 
 ops
-	:
-	op (',' op)*
-	;
+    :
+    op (',' op)*
+    ;
 
 vars
-	:
-	var (',' var)*
-	;
+    :
+    var (',' var)*
+    ;
 
 fixity
-	:
-	INFIX | INFIXL | INFIXL
-	;
+    :
+    INFIX | INFIXL | INFIXL
+    ;
 
 type
-	:
-	btype ('->' type)?
-	;
+    :
+    btype ('->' type)?
+    ;
 
 btype
-	:
-	atype+
-	;
+    :
+    atype+
+    ;
 
 atype
-	:
-	gtycon
-	| varid
-	| ( '(' type (',' type)* ')' )
-	| ( '[' type ']' )
-	| ( '(' type ')' )
-	;
+    :
+    gtycon
+    | varid
+    | ( '(' type (',' type)* ')' )
+    | ( '[' type ']' )
+    | ( '(' type ')' )
+    ;
 
 gtycon
-	:
-	qtycon
-	| ( '(' ')' )
-	| ( '[' ']' )
-	| ( '(' '->' ')' )
-	| ( '(' ',' '{' ',' '}' ')' )
-	;
+    :
+    qtycon
+    | ( '(' ')' )
+    | ( '[' ']' )
+    | ( '(' '->' ')' )
+    | ( '(' ',' '{' ',' '}' ')' )
+    ;
 
 typecontext
-	:
-	cls
-	| ( '(' cls (',' cls)* ')' )
-	;
+    :
+    cls
+    | ( '(' cls (',' cls)* ')' )
+    ;
 
 cls
-	:
-	(conid varid)
-	| ( qtycls '(' tyvar (atype (',' atype)*) ')' )
-	;
+    :
+    (conid varid)
+    | ( qtycls '(' tyvar (atype (',' atype)*) ')' )
+    ;
 
 scontext
-	:
-	simpleclass
-	| ( '(' (simpleclass (',' simpleclass)*)? ')' )
-	;
+    :
+    simpleclass
+    | ( '(' (simpleclass (',' simpleclass)*)? ')' )
+    ;
 
 simpleclass
-	:
-	qtycls tyvar
-	;
+    :
+    qtycls tyvar
+    ;
 
 simpletype
-	:
-	tycon tyvar*
-	;
+    :
+    tycon tyvar*
+    ;
 
 constrs
-	:
-	constr ('|' constr)*
-	;
+    :
+    constr ('|' constr)*
+    ;
 
 constr
-	:
-	(con ('!'? atype)*)
-	| ((btype | ('!' atype)) conop (btype | ('!' atype)))
-	| (con '{' (fielddecl (',' fielddecl)* )? '}')
-	;
+    :
+    (con ('!'? atype)*)
+    | ((btype | ('!' atype)) conop (btype | ('!' atype)))
+    | (con '{' (fielddecl (',' fielddecl)* )? '}')
+    ;
 
 newconstr
-	:
-	(con atype)
-	| (con '{' var '::' type '}')
-	;
+    :
+    (con atype)
+    | (con '{' var '::' type '}')
+    ;
 
 fielddecl
-	:
-	vars '::' (type | ('!' atype))
-	;
+    :
+    vars '::' (type | ('!' atype))
+    ;
 
 deriving
-	:
-	DERIVING (dclass | ('(' (dclass (',' dclass)*)? ')' ))
-	;
+    :
+    DERIVING (dclass | ('(' (dclass (',' dclass)*)? ')' ))
+    ;
 
 dclass
-	:
-	qtycls
-	;
+    :
+    qtycls
+    ;
 
 inst
-	:
-	gtycon
-	| ( '(' gtycon tyvar* ')' )
-	| ( '(' tyvar ',' tyvar (',' tyvar)* ')')
-	| ( '[' tyvar ']')
-	| ( '(' tyvar '->' tyvar ')' )
-	;
+    :
+    gtycon
+    | ( '(' gtycon tyvar* ')' )
+    | ( '(' tyvar ',' tyvar (',' tyvar)* ')')
+    | ( '[' tyvar ']')
+    | ( '(' tyvar '->' tyvar ')' )
+    ;
 
 fdecl
-	:
-	(IMPORT callconv safety? impent var '::' type)
-	| (EXPORT callconv expent var '::' type)
-	;
+    :
+    (IMPORT callconv safety? impent var '::' type)
+    | (EXPORT callconv expent var '::' type)
+    ;
 
 callconv
-	:
-	'ccall' | 'stdcall' | 'cplusplus' | 'jvm' | 'dotnet'
-	;
+    :
+    'ccall' | 'stdcall' | 'cplusplus' | 'jvm' | 'dotnet'
+    ;
 
 impent : pstring;
 expent : pstring;
 safety : 'unsafe' | 'safe';
 
 funlhs
-	:
-	(var apat+)
-	| (pat varop pat)
-	| ( '(' funlhs ')' apat+)
-	;
+    :
+    (var apat+)
+    | (pat varop pat)
+    | ( '(' funlhs ')' apat+)
+    ;
 
 rhs
-	:
-	('=' exp (WHERE decls)?)
-	| (gdrhs (WHERE decls)?);
+    :
+    ('=' exp (WHERE decls)?)
+    | (gdrhs (WHERE decls)?);
 
 gdrhs
-	:
+    :
     gdrh+
-	;
+    ;
 
 gdrh
     :
-	'|' guards '=' exp
+    '|' guards '=' exp
     ;
 
 guards
-	:
-	guard (',' guard)*
-	;
+    :
+    guard (',' guard)*
+    ;
 
 guard
-	:
-	pat '<-' infixexp
-	| LET decls
-	| infixexp
-	;
+    :
+    pat '<-' infixexp
+    | LET decls
+    | infixexp
+    ;
 
 exp
-	:
-	(infixexp '::' (typecontext '=>')? type)
-	| infixexp
-	;
+    :
+    (infixexp '::' (typecontext '=>')? type)
+    | infixexp
+    ;
 
 infixexp
-	:
-	(lexp qop infixexp)
-	| ('-' infixexp)
-	| lexp
-	;
+    :
+    (lexp qop infixexp)
+    | ('-' infixexp)
+    | lexp
+    ;
 
 lexp
-	:
-	('\\' apat+ '->' exp)
-	| (LET decls IN exp)
-	| (IF exp semi? THEN exp semi? ELSE exp)
+    :
+    ('\\' apat+ '->' exp)
+    | (LET decls IN exp)
+    | (IF exp semi? THEN exp semi? ELSE exp)
     | ({MultiWayIf}? IF ifgdpats)
-	| (CASE exp OF alts)
-	| (DO stmts)
-	| fexp
-	;
+    | (CASE exp OF alts)
+    | (DO stmts)
+    | fexp
+    ;
 
 fexp
-	:
-	aexp+
-	;
+    :
+    aexp+
+    ;
 
 aexp
-	:
-	qvar
-	| gcon
-	| literal
-	| ( '(' exp ')' )
-	| ( '(' exp ',' exp (',' exp)* ')' )
-	| ( '[' exp (',' exp)* ']' )
-	| ( '[' exp (',' exp)? '..' exp? ']' )
-	| ( '[' exp '|' qual (',' qual)* ']' )
-	| ( '(' infixexp qop ')' )
-	| ( '(' qop infixexp ')' )
-	| ( qcon '{' (fbind (',' fbind))? '}' )
-	| ('{' fbind (',' fbind)* '}')+
-	;
+    :
+    qvar
+    | gcon
+    | literal
+    | ( '(' exp ')' )
+    | ( '(' exp ',' exp (',' exp)* ')' )
+    | ( '[' exp (',' exp)* ']' )
+    | ( '[' exp (',' exp)? '..' exp? ']' )
+    | ( '[' exp '|' qual (',' qual)* ']' )
+    | ( '(' infixexp qop ')' )
+    | ( '(' qop infixexp ')' )
+    | ( qcon '{' (fbind (',' fbind))? '}' )
+    | ('{' fbind (',' fbind)* '}')+
+    ;
 
 qual
-	:
-	(pat '<-' exp)
-	| (LET decls)
-	| exp
-	;
+    :
+    (pat '<-' exp)
+    | (LET decls)
+    | exp
+    ;
 
 alts
-	:
-	open (alt semi+)+ close
-	;
+    :
+    open (alt semi+)+ close
+    ;
 
 alt
-	:
-	(pat '->' exp (WHERE decls)?)
-	| (pat gdpats (WHERE decls)?)
-	;
+    :
+    (pat '->' exp (WHERE decls)?)
+    | (pat gdpats (WHERE decls)?)
+    ;
 
 gdpats
-	:
+    :
     gdpat+
     ;
 
@@ -662,65 +662,65 @@ ifgdpats
 
 gdpat
     :
-	'|' guards '->' exp
-	;
+    '|' guards '->' exp
+    ;
 
 stmts
-	:
-	open (stmt)* exp semi* close
-	;
+    :
+    open (stmt)* exp semi* close
+    ;
 
 stmt
-	:
-	(exp semi+)
-	| (pat '<-' exp semi+)
-	| (LET decls semi+)
-	| semi+
-	;
+    :
+    (exp semi+)
+    | (pat '<-' exp semi+)
+    | (LET decls semi+)
+    | semi+
+    ;
 
 fbind
-	:
-	qvar '=' exp
-	;
+    :
+    qvar '=' exp
+    ;
 
 pat
-	:
-	(lpat qconop pat)
-	| lpat
-	;
+    :
+    (lpat qconop pat)
+    | lpat
+    ;
 
 lpat
-	:
-	apat
-	| ('-' (integer | pfloat))
-	| (gcon apat+)
-	;
+    :
+    apat
+    | ('-' (integer | pfloat))
+    | (gcon apat+)
+    ;
 
 apat
-	:
-	(var ('@' apat)?)
-	| gcon
-	| (qcon '{' (fpat (',' fpat)*)? '}')
-	| literal
-	| '_'
-	| ('(' pat ')')
-	| ('(' pat ',' pat (',' pat)* ')')
-	| ('[' pat (',' pat)* ']')
-	| ('~'apat)
-	;
+    :
+    (var ('@' apat)?)
+    | gcon
+    | (qcon '{' (fpat (',' fpat)*)? '}')
+    | literal
+    | '_'
+    | ('(' pat ')')
+    | ('(' pat ',' pat (',' pat)* ')')
+    | ('[' pat (',' pat)* ']')
+    | ('~'apat)
+    ;
 
 fpat
-	:
-	qvar '=' pat
-	;
+    :
+    qvar '=' pat
+    ;
 
 gcon
-	:
-	('(' ')')
-	| ('[' ']')
-	| ('(' (',')+ ')')
-	| qcon
-	;
+    :
+    ('(' ')')
+    | ('[' ']')
+    | ('(' (',')+ ')')
+    | qcon
+    ;
 
 var	:    varid   | ( '(' varsym ')' );
 qvar:    qvarid  | ( '(' qvarsym ')');
@@ -765,11 +765,11 @@ qvarsym: (modid '.')? varsym;
 qconsym: (modid '.')? consym;
 
 integer
-	:
-	DECIMAL
-	| OCTAL
-	| HEXADECIMAL
- 	;
+    :
+    DECIMAL
+    | OCTAL
+    | HEXADECIMAL
+     ;
 
 
 pfloat: FLOAT;

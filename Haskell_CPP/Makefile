@@ -2,7 +2,7 @@ ANTLR 	= java -Xmx500M -cp "/usr/local/lib/antlr-4.7.1-complete.jar:$(CLASSPATH)
 GRUN    = java -Xmx500M -cp "/usr/local/lib/antlr-4.7.1-complete.jar:$(CLASSPATH)" org.antlr.v4.gui.TestRig
 GRAMMAR = Haskell
 TEST 	= file.txt
-ROOT	= file
+ROOT	= module
 LIBPATH = -L/usr/local/lib
 LINK 	= -lantlr4-runtime
 INCLUDE = -I/usr/local/include/antlr4-runtime 
@@ -13,7 +13,7 @@ antlr:
 	$(ANTLR) -Dlanguage=Cpp src/${GRAMMAR}".g4" -no-listener
 
 compile:
-	g++ src/*.cpp src/printer/*.cpp -g $(INCLUDE) $(LINK) $(LIBPATH) -std=c++17 -o parsertestexe
+	g++ src/*.cpp -g $(INCLUDE) $(LINK) $(LIBPATH) -std=c++17 -w -o parsertestexe
 
 grun:
 	$(GRUN) $(GRAMMAR) $(ROOT) -gui $(TEST) 

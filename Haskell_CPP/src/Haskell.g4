@@ -37,7 +37,7 @@ grammar Haskell;
     std::list < std::unique_ptr<Token> > tokenQueue;
     // The stack that keeps key word and indent after that
     std::stack <std::pair <std::string, int> > indentStack;
-    // Pointer keeps last indent token 
+    // Pointer keeps last indent token
     initIndent* initialIndentToken = nullptr;
     std::string last_key_word;
 
@@ -52,7 +52,7 @@ grammar Haskell;
 
     int getSavedIndent() { return indentStack.empty() ? start_indent : indentStack.top().second; }
 
-    std::unique_ptr <CommonToken> 
+    std::unique_ptr <CommonToken>
     createToken(int type, std::string text, int start_ind) {
         auto token = std::unique_ptr<CommonToken>(new CommonToken(type, text));
 
@@ -61,9 +61,9 @@ grammar Haskell;
             token->setLine(initialIndentToken->getLine);
             token->setCharPositionInLine(initialIndentToken->getCharPositionInLine);
             token->setStopIndex(start_ind - 1);
-        } 
+        }
         return token;
-    } 
+    }
 
     void processINToken(int st_ind) {
         while (!indentStack.empty() && indentStack.top().first != "let") {
@@ -134,7 +134,7 @@ grammar Haskell;
         int st_ind = next->getStartIndex();
 
         if (next->getType() == OCURLY) {
-            if (prev_was_keyword) { 
+            if (prev_was_keyword) {
                 nested_level--;
                 prev_was_keyword = false;
             }
@@ -153,8 +153,8 @@ grammar Haskell;
             tokenQueue.push_back(createToken(VOCURLY, "VOCURLY", st_ind));
         }
 
-        if (ignore_indent 
-            && (next->getType() == WHERE 
+        if (ignore_indent
+            && (next->getType() == WHERE
             || next->getType() == DO
             || next->getType() == LET
             || next->getType() == OF
@@ -163,13 +163,13 @@ grammar Haskell;
             ignore_indent = false;
         }
 
-        if (pendingDent 
+        if (pendingDent
             && prev_was_keyword
             && !ignore_indent
             && indentCount <= getSavedIndent()
             && next->getType() != NEWLINE
             && next->getType() != WS) {
-            
+
             tokenQueue.push_back(createToken(VOCURLY, "VOCURLY", st_ind));
             prev_was_keyword = false;
             prev_was_endl = true;
@@ -191,7 +191,7 @@ grammar Haskell;
             while (nested_level > indentStack.size()) {
                 if (nested_level > 0)
                     nested_level--;
-                
+
                 tokenQueue.push_back(createToken(SEMI, "SEMI", st_ind));
                 tokenQueue.push_back(createToken(VCCURLY, "VCCURLY", st_ind));
             }
@@ -205,13 +205,13 @@ grammar Haskell;
                 tokenQueue.push_back(createToken(SEMI, "SEMI", st_ind));
                 tokenQueue.push_back(createToken(VCCURLY, "VCCURLY", st_ind));
             }
-            
+
             if (indentCount == getSavedIndent()) {
                 tokenQueue.push_back(createToken(SEMI, "SEMI", st_ind));
             }
 
             prev_was_endl = false;
-            if (indentCount == start_indent) 
+            if (indentCount == start_indent)
                 pendingDent = false;
         }
 
@@ -222,7 +222,7 @@ grammar Haskell;
             && next->getType() != NEWLINE
             && next->getType() != WS
             && next->getType() != EOF) {
-            
+
             prev_was_keyword = false;
 
             if (prev_was_endl) {
@@ -233,7 +233,7 @@ grammar Haskell;
             tokenQueue.push_back(createToken(VOCURLY, "VOCURLY", st_ind));
         }
 
-        if (pendingDent && initialIndentToken == nullptr && NEWLINE != next->getType()) {     
+        if (pendingDent && initialIndentToken == nullptr && NEWLINE != next->getType()) {
             assign_next(initialIndentToken, next);
         }
 
@@ -243,7 +243,7 @@ grammar Haskell;
 
         if (next->getType() == WHERE || next->getType() == LET || next->getType() == DO || next->getType() == OF) {
             // if next will be OCURLY need to decrement nested_level
-            nested_level++; 
+            nested_level++;
             prev_was_keyword = true;
             prev_was_endl = false;
             last_key_word = next->getText();
@@ -255,7 +255,7 @@ grammar Haskell;
                     indentStack.pop();
                     nested_level--;
                 }
-            } 
+            }
         }
 
         if (next != nullptr && next->getType() == OCURLY) {
@@ -263,7 +263,7 @@ grammar Haskell;
         }
 
         if (next == nullptr || HIDDEN == next->getChannel() || NEWLINE == next->getType())
-            return next; 
+            return next;
 
         if (next->getType() == IN) {
             processINToken(st_ind);
@@ -278,8 +278,8 @@ grammar Haskell;
         tokenQueue.push_back(std::move(next));
         auto p = std::move(tokenQueue.front());
         tokenQueue.pop_front();
-        
-        return p; 
+
+        return p;
     }
 }
 
@@ -350,15 +350,15 @@ himport
 	| ( tycls ( ('(' '..' ')') | ('(' (var (',' var)*)? ')') )? )
 	;
 
-cname 
+cname
 	:
 	var | con
 	;
 
 topdecls : ((topdecl semi+) | NEWLINE | semi)+;
 
-topdecl 
-	: 
+topdecl
+	:
     (TYPE simpletype '=' type)
     | (DATA (typecontext '=>')? simpletype ('=' constrs)? deriving?)
     | (NEWTYPE (typecontext '=>')? simpletype '=' newconstr deriving?)
@@ -368,13 +368,13 @@ topdecl
     | (FOREIGN fdecl)
     | decl;
 
-decls 
+decls
 	:
 	open ((decl semi+)* decl semi*)? close
 	;
 
-decl 
-	: 
+decl
+	:
     '{-#' 'INLINE' qvar '#-}'
     | '{-#' 'NOINLINE' qvar '#-}'
     | '{-#' 'SPECIALIZE' specs '-#}'
@@ -385,7 +385,7 @@ decl
 
 specs
     :
-    spec (',' spec)* 
+    spec (',' spec)*
     ;
 
 spec
@@ -414,7 +414,7 @@ idecl
 	(funlhs | var) rhs
 	;
 
-gendecl	
+gendecl
 	:
 	vars '::' (typecontext '=>')? type
 	| (fixity (DECIMAL)? ops)
@@ -430,7 +430,7 @@ vars
 	var (',' var)*
 	;
 
-fixity 
+fixity
 	:
 	INFIX | INFIXL | INFIXL
 	;
@@ -439,7 +439,7 @@ type
 	:
 	btype ('->' type)?
 	;
-	
+
 btype
 	:
 	atype+
@@ -487,17 +487,17 @@ simpleclass
 	;
 
 simpletype
-	: 
+	:
 	tycon tyvar*
 	;
 
 constrs
-	: 
+	:
 	constr ('|' constr)*
 	;
 
 constr
-	: 
+	:
 	(con ('!'? atype)*)
 	| ((btype | ('!' atype)) conop (btype | ('!' atype)))
 	| (con '{' (fielddecl (',' fielddecl)* )? '}')
@@ -524,11 +524,11 @@ dclass
 	qtycls
 	;
 
-inst 
+inst
 	:
 	gtycon
 	| ( '(' gtycon tyvar* ')' )
-	| ( '(' tyvar ',' tyvar (',' tyvar)* ')') 
+	| ( '(' tyvar ',' tyvar (',' tyvar)* ')')
 	| ( '[' tyvar ']')
 	| ( '(' tyvar '->' tyvar ')' )
 	;
@@ -548,15 +548,15 @@ impent : pstring;
 expent : pstring;
 safety : 'unsafe' | 'safe';
 
-funlhs 
+funlhs
 	:
 	(var apat+)
 	| (pat varop pat)
 	| ( '(' funlhs ')' apat+)
 	;
 
-rhs 
-	: 
+rhs
+	:
 	('=' exp (WHERE decls)?)
 	| (gdrhs (WHERE decls)?);
 
@@ -582,10 +582,10 @@ guard
 	| infixexp
 	;
 
-exp	
+exp
 	:
 	(infixexp '::' (typecontext '=>')? type)
-	| infixexp 
+	| infixexp
 	;
 
 infixexp
@@ -611,7 +611,7 @@ fexp
 	aexp+
 	;
 
-aexp 
+aexp
 	:
 	qvar
 	| gcon
@@ -627,7 +627,7 @@ aexp
 	| ('{' fbind (',' fbind)* '}')+
 	;
 
-qual 
+qual
 	:
 	(pat '<-' exp)
 	| (LET decls)
@@ -680,7 +680,7 @@ stmt
 
 fbind
 	:
-	qvar '=' exp	
+	qvar '=' exp
 	;
 
 pat
@@ -696,7 +696,7 @@ lpat
 	| (gcon apat+)
 	;
 
-apat 
+apat
 	:
 	(var ('@' apat)?)
 	| gcon
@@ -706,7 +706,7 @@ apat
 	| ('(' pat ')')
 	| ('(' pat ',' pat (',' pat)* ')')
 	| ('[' pat (',' pat)* ']')
-	| ('~'apat) 
+	| ('~'apat)
 	;
 
 fpat
@@ -746,8 +746,8 @@ conid : CONID ({MagicHash}? '#'*);
 
 symbol: ascSymbol;
 ascSymbol: '!' | '#' | '$' | '%' | '&' | '*' | '+'
-        | '.' | '/' | '<' | '=' | '>' | '?' | '@' 
-        | '\\' | '^' | '|' | '-' | '~' | ':' ; 
+        | '.' | '/' | '<' | '=' | '>' | '?' | '@'
+        | '\\' | '^' | '|' | '-' | '~' | ':' ;
 
 varsym : ascSymbol+;
 consym : ':' ascSymbol*;
@@ -765,7 +765,7 @@ qvarsym: (modid '.')? varsym;
 qconsym: (modid '.')? consym;
 
 integer
-	: 
+	:
 	DECIMAL
 	| OCTAL
 	| HEXADECIMAL
@@ -798,7 +798,7 @@ WS : [\u0020\u00a0\u1680\u2000\u200a\u202f\u205f\u3000]+ {
     }
 } ;
 
-// PRAGMA   : '{-#' 'LANGUAGE' CONID (',' CONID)* '#-}'; 
+// PRAGMA   : '{-#' 'LANGUAGE' CONID (',' CONID)* '#-}';
 
 COMMENT  : '--' (~[\r\n])* -> skip;
 NCOMMENT : '{-'~[#] .*? '-}' -> skip;
@@ -838,12 +838,12 @@ QUALIFIED: 'qualified';
 AS : 'as';
 HIDING : 'hiding';
 
-CHAR : '\'' (' ' | DECIMAL | SMALL | LARGE 
-              | ASCSYMBOL | DIGIT | ',' | ';' | '(' | ')' 
+CHAR : '\'' (' ' | DECIMAL | SMALL | LARGE
+              | ASCSYMBOL | DIGIT | ',' | ';' | '(' | ')'
               | '[' | ']' | '`' | '"') '\'';
 
-STRING : '"' (' ' | DECIMAL | SMALL | LARGE 
-              | ASCSYMBOL | DIGIT | ',' | ';' | '(' | ')' 
+STRING : '"' (' ' | DECIMAL | SMALL | LARGE
+              | ASCSYMBOL | DIGIT | ',' | ';' | '(' | ')'
               | '[' | ']' | '`' | '\'')* '"';
 
 VARID : SMALL (SMALL | LARGE | DIGIT | '\'' )*;
@@ -1501,7 +1501,7 @@ fragment UNILARGE
 
 fragment SMALL : ASCSMALL | UNISMALL;
 fragment ASCSMALL : [_a-z];
-fragment UNISMALL 
+fragment UNISMALL
     // : '\u0061'..'\u007a'       // Basic_Latin
     : '\u00b5'                 // Latin-1_Supplement
     | '\u00df'..'\u00f6'       // Latin-1_Supplement
@@ -2105,10 +2105,10 @@ fragment UNISMALL
 ;
 
 ASCSYMBOL : '!' | '#' | '$' | '%' | '&' | '*' | '+'
-        | '.' | '/' | '<' | '=' | '>' | '?' | '@' 
-        | '\\' | '^' | '|' | '-' | '~' | ':' ; 
+        | '.' | '/' | '<' | '=' | '>' | '?' | '@'
+        | '\\' | '^' | '|' | '-' | '~' | ':' ;
 
-UNISYMBOL  
+UNISYMBOL
     :
     CLASSIFY_Sc | CLASSIFY_Sk | CLASSIFY_Sm | CLASSIFY_So
 ;

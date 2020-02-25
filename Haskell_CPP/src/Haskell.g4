@@ -66,10 +66,6 @@ grammar Haskell;
     } 
 
     void processINToken(int st_ind) {
-        if (indentStack.empty()) {
-            return;
-        }
-
         while (!indentStack.empty() && indentStack.top().first != "let") {
             tokenQueue.push_back(createToken(SEMI, "SEMI", st_ind));
             tokenQueue.push_back(createToken(VCCURLY, "VCCURLY", st_ind));
@@ -147,10 +143,11 @@ grammar Haskell;
             prev_was_endl = false;
         }
 
-        if (prev_was_keyword &&
-             !prev_was_endl && 
-            (next->getType() != WS && next->getType() != NEWLINE 
-            && next->getType() != TAB && next->getType() != OCURLY)) {
+        if (prev_was_keyword && !prev_was_endl
+            && next->getType() != WS
+            && next->getType() != NEWLINE
+            && next->getType() != TAB
+            && next->getType() != OCURLY) {
             prev_was_keyword = false;
             indentStack.push({last_key_word, next->getCharPositionInLine()});
             tokenQueue.push_back(createToken(VOCURLY, "VOCURLY", st_ind));
@@ -214,7 +211,8 @@ grammar Haskell;
             }
 
             prev_was_endl = false;
-            if (indentCount == start_indent) pendingDent = false;
+            if (indentCount == start_indent) 
+                pendingDent = false;
         }
 
 
@@ -292,7 +290,7 @@ grammar Haskell;
 
 // parser rules
 
-module : pragmas? ((MODULE modid exports? WHERE open body close semi*) | body) EOF;
+module :  semi* pragmas? semi* ((MODULE modid exports? WHERE open body close semi*) | body) EOF;
 
 pragmas
     :
@@ -301,7 +299,12 @@ pragmas
 
 pragma
     :
-    PRAGMA
+    '{-#' 'LANGUAGE'  extension (',' extension)* '#-}'
+    ;
+
+extension
+    :
+    conid
     ;
 
 body
@@ -372,10 +375,23 @@ decls
 
 decl 
 	: 
-	gendecl
+    '{-#' 'INLINE' qvar '#-}'
+    | '{-#' 'NOINLINE' qvar '#-}'
+    | '{-#' 'SPECIALIZE' specs '-#}'
+    | gendecl
 	| ((funlhs | pat) rhs)
 	| semi+
 	;
+
+specs
+    :
+    spec (',' spec)* 
+    ;
+
+spec
+    :
+    vars '::' type
+    ;
 
 cdecls
 	:
@@ -782,10 +798,10 @@ WS : [\u0020\u00a0\u1680\u2000\u200a\u202f\u205f\u3000]+ {
     }
 } ;
 
-PRAGMA   : '{-#' 'LANGUAGE' CONID (',' CONID)* '#-}'; 
+// PRAGMA   : '{-#' 'LANGUAGE' CONID (',' CONID)* '#-}'; 
 
 COMMENT  : '--' (~[\r\n])* -> skip;
-NCOMMENT : '{-' .*? '-}' -> skip;
+NCOMMENT : '{-'~[#] .*? '-}' -> skip;
 
 OCURLY : '{';
 CCURLY : '}';

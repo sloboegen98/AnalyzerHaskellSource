@@ -43,7 +43,7 @@ grammar Haskell;
 
     bool prev_was_endl = false;
     bool prev_was_keyword = false;
-    // Need, for example in {}-block
+    // Need, for example, in {}-block
     bool ignore_indent = false;
     // Haskell saves indent before first symbol as null indent
     int start_indent = -1;
@@ -73,7 +73,7 @@ grammar Haskell;
             indentStack.pop();
         }
 
-        if (!indentStack.empty() && (indentStack.top().first == "let")) {
+        if (!indentStack.empty() && indentStack.top().first == "let") {
             tokenQueue.push_back(createToken(SEMI, "SEMI", st_ind));
             tokenQueue.push_back(createToken(VCCURLY, "VCCURLY", st_ind));
             nested_level--;
@@ -127,7 +127,10 @@ grammar Haskell;
         auto next = Lexer::nextToken();
         std::cout << next->toString() << std::endl;
 
-        if (start_indent == -1 && (next->getType() != NEWLINE && next->getType() != WS && next->getType() != TAB)) {
+        if (start_indent == -1 
+            && next->getType() != NEWLINE 
+            && next->getType() != WS 
+            && next->getType() != TAB) {
             start_indent = next->getCharPositionInLine();
         }
 
@@ -233,7 +236,9 @@ grammar Haskell;
             tokenQueue.push_back(createToken(VOCURLY, "VOCURLY", st_ind));
         }
 
-        if (pendingDent && initialIndentToken == nullptr && NEWLINE != next->getType()) {
+        if (pendingDent 
+            && initialIndentToken == nullptr 
+            && NEWLINE != next->getType()) {
             assign_next(initialIndentToken, next);
         }
 
@@ -241,7 +246,10 @@ grammar Haskell;
             prev_was_endl = true;
         }
 
-        if (next->getType() == WHERE || next->getType() == LET || next->getType() == DO || next->getType() == OF) {
+        if (next->getType() == WHERE 
+            || next->getType() == LET 
+            || next->getType() == DO 
+            || next->getType() == OF) {
             // if next will be OCURLY need to decrement nested_level
             nested_level++;
             prev_was_keyword = true;
@@ -797,8 +805,6 @@ WS : [\u0020\u00a0\u1680\u2000\u200a\u202f\u205f\u3000]+ {
         indentCount += getText().length();
     }
 } ;
-
-// PRAGMA   : '{-#' 'LANGUAGE' CONID (',' CONID)* '#-}';
 
 COMMENT  : '--' (~[\r\n])* -> skip;
 NCOMMENT : '{-'~[#] .*? '-}' -> skip;

@@ -174,6 +174,11 @@ grammar Haskell;
                 prev_was_keyword = false;
             }
 
+            if (module_start_indent) {
+                module_start_indent = false;
+                was_module_export = false;
+            }
+
             ignore_indent = true;
             prev_was_endl = false;
         }
@@ -333,7 +338,7 @@ grammar Haskell;
 
 // parser rules
 
-module :  semi* pragmas? semi* ((MODULE modid exports? WHERE open body close) | body) EOF;
+module :  semi* pragmas? semi* ((MODULE modid exports? WHERE open body close semi*) | body) EOF;
 
 pragmas
     :

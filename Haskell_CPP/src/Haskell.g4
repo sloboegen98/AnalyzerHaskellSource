@@ -39,12 +39,17 @@ grammar Haskell;
     std::stack <std::pair <std::string, int> > indentStack;
     // Pointer keeps last indent token
     initIndent* initialIndentToken = nullptr;
-    std::string last_key_word;
+    std::string last_key_word      = "";
 
-    bool prev_was_endl = false;
-    bool prev_was_keyword = false;
+    bool prev_was_endl       = false;
+    bool prev_was_keyword    = false;
     // Need, for example, in {}-block
-    bool ignore_indent = false;
+    bool ignore_indent       = false;
+    // Check moment, when you should calculate start indent
+    // module ... where {now you should remember start indent}
+    bool module_start_indent = false;
+    bool was_module_export   = false; 
+
     // Haskell saves indent before first symbol as null indent
     int start_indent = -1;
     // Count of "active" key words in this moment
@@ -111,6 +116,12 @@ grammar Haskell;
             tokenQueue.push_back(createToken(SEMI, "SEMI", st_ind));
         }
 
+        if (was_module_export) {
+        //     // tokenQueue.push_back(createToken(SEMI, "SEMI", st_ind));
+            tokenQueue.push_back(createToken(VCCURLY, "VCCURLY", st_ind));
+            // tokenQueue.push_back(createToken(SEMI, "SEMI", st_ind));
+        }
+
         start_indent = -1;
     }
 
@@ -124,17 +135,38 @@ grammar Haskell;
             return ptr;
         }
 
+
         auto next = Lexer::nextToken();
+        int st_ind = next->getStartIndex();
+        // For debug
         std::cout << next->toString() << std::endl;
 
-        if (start_indent == -1 
-            && next->getType() != NEWLINE 
-            && next->getType() != WS 
-            && next->getType() != TAB) {
-            start_indent = next->getCharPositionInLine();
+        if (start_indent == -1
+            && next->getType() != NEWLINE
+            && next->getType() != WS
+            && next->getType() != TAB
+            && next->getType() != OCURLY) { 
+            if (next->getType() == MODULE) {
+                module_start_indent = true;
+                was_module_export = true;
+            } if (next->getType() != MODULE && !module_start_indent) {
+                start_indent = next->getCharPositionInLine();
+            } else if (last_key_word == "where" && module_start_indent) {
+                last_key_word = "";
+                prev_was_keyword = false;
+                nested_level = 0;
+                module_start_indent = false;
+                start_indent = next->getCharPositionInLine();
+                tokenQueue.push_back(createToken(VOCURLY, "VOCURLY", st_ind));
+                tokenQueue.push_back(createToken(next->getType(), next->getText(), st_ind));
+                std::cout << "SHOCK! " << next->toString() << std::endl;
+                // indentStack.push({"where", start_indent});
+                std::cout << start_indent << '\n';
+                auto ptr = std::move(tokenQueue.front());
+                tokenQueue.pop_front();
+                return ptr;
+            }
         }
-
-        int st_ind = next->getStartIndex();
 
         if (next->getType() == OCURLY) {
             if (prev_was_keyword) {
@@ -147,6 +179,7 @@ grammar Haskell;
         }
 
         if (prev_was_keyword && !prev_was_endl
+            && !module_start_indent
             && next->getType() != WS
             && next->getType() != NEWLINE
             && next->getType() != TAB
@@ -220,6 +253,7 @@ grammar Haskell;
 
 
         if (pendingDent && prev_was_keyword
+            && !module_start_indent
             && !ignore_indent
             && indentCount > getSavedIndent()
             && next->getType() != NEWLINE
@@ -236,8 +270,8 @@ grammar Haskell;
             tokenQueue.push_back(createToken(VOCURLY, "VOCURLY", st_ind));
         }
 
-        if (pendingDent 
-            && initialIndentToken == nullptr 
+        if (pendingDent
+            && initialIndentToken == nullptr
             && NEWLINE != next->getType()) {
             assign_next(initialIndentToken, next);
         }
@@ -246,9 +280,9 @@ grammar Haskell;
             prev_was_endl = true;
         }
 
-        if (next->getType() == WHERE 
-            || next->getType() == LET 
-            || next->getType() == DO 
+        if (next->getType() == WHERE
+            || next->getType() == LET
+            || next->getType() == DO
             || next->getType() == OF) {
             // if next will be OCURLY need to decrement nested_level
             nested_level++;
@@ -294,11 +328,12 @@ grammar Haskell;
 @parser::members {
     bool MultiWayIf = true;
     bool MagicHash  = true;
+    bool FlexibleInstances = true;
 }
 
 // parser rules
 
-module :  semi* pragmas? semi* ((MODULE modid exports? WHERE open body close semi*) | body) EOF;
+module :  semi* pragmas? semi* ((MODULE modid exports? WHERE open body close) | body) EOF;
 
 pragmas
     :
@@ -363,7 +398,7 @@ cname
     var | con
     ;
 
-topdecls : ((topdecl semi+) | NEWLINE | semi)+;
+topdecls : (topdecl semi+| NEWLINE | semi)+;
 
 topdecl
     :
@@ -536,6 +571,7 @@ inst
     :
     gtycon
     | ( '(' gtycon tyvar* ')' )
+    | ( '(' gtycon tycon* ')' ) // FlexibleInstances
     | ( '(' tyvar ',' tyvar (',' tyvar)* ')')
     | ( '[' tyvar ']')
     | ( '(' tyvar '->' tyvar ')' )

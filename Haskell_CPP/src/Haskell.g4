@@ -117,9 +117,7 @@ grammar Haskell;
         }
 
         if (was_module_export) {
-        //     // tokenQueue.push_back(createToken(SEMI, "SEMI", st_ind));
             tokenQueue.push_back(createToken(VCCURLY, "VCCURLY", st_ind));
-            // tokenQueue.push_back(createToken(SEMI, "SEMI", st_ind));
         }
 
         start_indent = -1;
@@ -159,9 +157,7 @@ grammar Haskell;
                 start_indent = next->getCharPositionInLine();
                 tokenQueue.push_back(createToken(VOCURLY, "VOCURLY", st_ind));
                 tokenQueue.push_back(createToken(next->getType(), next->getText(), st_ind));
-                std::cout << "SHOCK! " << next->toString() << std::endl;
-                // indentStack.push({"where", start_indent});
-                std::cout << start_indent << '\n';
+                
                 auto ptr = std::move(tokenQueue.front());
                 tokenQueue.pop_front();
                 return ptr;

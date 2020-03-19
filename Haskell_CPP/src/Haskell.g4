@@ -403,14 +403,31 @@ topdecls : (topdecl semi+| NEWLINE | semi)+;
 
 topdecl
     :
-    (TYPE simpletype '=' type)
-    | (DATA (typecontext '=>')? simpletype ('=' constrs)? deriving?)
-    | (NEWTYPE (typecontext '=>')? simpletype '=' newconstr deriving?)
-    | (CLASS (scontext '=>')? tycls tyvar (WHERE cdecls)?)
-    | (INSTANCE (scontext '=>')? qtycls inst (WHERE idecls)?)
+    cl_decl
+    | ty_decl
+    // see about this rule
+    // | standalone_kind__sig
+    | inst_decl
     | (DEFAULT '(' (type (',' type)*)? ')' )
     | (FOREIGN fdecl)
     | decl;
+
+cl_decl
+    :
+    CLASS (scontext '=>')? tycls tyvar (WHERE cdecls)?
+    ;
+
+ty_decl
+    :
+    (TYPE simpletype '=' type)
+    | (DATA (typecontext '=>')? simpletype ('=' constrs)? deriving?)
+    | (NEWTYPE (typecontext '=>')? simpletype '=' newconstr deriving?)
+    ;
+
+inst_decl
+    :
+    INSTANCE (scontext '=>')? qtycls inst (WHERE idecls)?
+    ;
 
 decls
     :
@@ -880,6 +897,7 @@ QUALIFIED: 'qualified';
 
 AS : 'as';
 HIDING : 'hiding';
+// FAMILY : 'family';
 
 CHAR : '\'' (' ' | DECIMAL | SMALL | LARGE
               | ASCSYMBOL | DIGIT | ',' | ';' | '(' | ')'

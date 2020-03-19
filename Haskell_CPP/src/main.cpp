@@ -7,8 +7,6 @@
 #include "HaskellLexer.h"
 #include "HaskellParser.h"
 
-#include "printer/printer.h"
-
 class MyParserErrorListener: public antlr4::BaseErrorListener {
   virtual void syntaxError(
       antlr4::Recognizer *recognizer,

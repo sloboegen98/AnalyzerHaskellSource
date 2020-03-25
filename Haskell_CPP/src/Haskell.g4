@@ -406,21 +406,26 @@ topdecl
     cl_decl
     | ty_decl
     // see about this rule
-    // | standalone_kind__sig
+    // | standalone_kind_sig
     | inst_decl
     | (DEFAULT '(' (type (',' type)*)? ')' )
     | (FOREIGN fdecl)
-    | decl;
+    | decl
+    ;
 
 cl_decl
     :
-    CLASS (scontext '=>')? tycls tyvar (WHERE cdecls)?
+    // CLASS (scontext '=>')? tycls tyvar (WHERE cdecls)?
+    CLASS tycl_hdr fds? where_cls?
     ;
 
 ty_decl
     :
     (TYPE simpletype '=' type)
+    // TypeFamiles
+    | (TYPE FAMILY type opt_tyfam_kind_sig opt_injective_info? where_type_family?)
     | (DATA (typecontext '=>')? simpletype ('=' constrs)? deriving?)
+    | (DATA FAMILY type opt_datafam_kind_sig)
     | (NEWTYPE (typecontext '=>')? simpletype '=' newconstr deriving?)
     ;
 
@@ -481,6 +486,12 @@ gendecl
     | (fixity (DECIMAL)? ops)
     ;
 
+where_cls
+    :
+    // In GHC decls_cls
+    WHERE cdecls
+    ;
+
 ops
     :
     op (',' op)*
@@ -498,7 +509,16 @@ fixity
 
 type
     :
-    btype ('->' type)?
+    btype
+    | btype '->' ctype
+    ;
+
+ctype
+    :
+    // forall rule will be
+    | btype '=>' ctype
+    | var '::' type // not sure about this rule
+    | type
     ;
 
 btype
@@ -515,6 +535,54 @@ atype
     | ( '(' type ')' )
     ;
 
+ktype
+    :
+    ctype
+    | ctype '::' kind
+    ;
+
+// In GHC this rule is context
+tycl_context
+    :
+    btype
+    ;
+
+tv_bndrs
+    :
+    tv_bndr+
+    ;
+
+tv_bndr
+    :
+    tyvar
+    | '(' tyvar '::' kind ')'
+    ;
+
+fds 
+    :
+    '|' fds1
+    ;
+
+fds1
+    :
+    fd (',' fd)*
+    ;
+
+fd
+    :
+    varids0? '->' varids0?
+    ;
+
+varids0
+    :
+    tyvar+
+    ;
+
+kind
+    :
+    ctype
+    ;
+
 gtycon
     :
     qtycon
@@ -522,6 +590,66 @@ gtycon
     | ( '[' ']' )
     | ( '(' '->' ')' )
     | ( '(' ',' '{' ',' '}' ')' )
+    ;
+
+opt_datafam_kind_sig
+    :
+    '::' kind
+    ;
+
+opt_tyfam_kind_sig
+    :
+    '::' kind
+    | '=' tv_bndr
+    ;
+
+opt_injective_info
+    :
+    '|' injectivity_cond
+    ;
+
+tycl_hdr
+    :
+    (tycl_context '=>' type)
+    | type
+    ;
+
+injectivity_cond
+    :
+    // but in GHC new tyvarid rule
+    tyvarid
+    | tyvarid '->' inj_varids
+    ;
+
+inj_varids
+    :
+    tyvarid+
+    ;
+
+// injectivity_cond :: { LInjectivityAnn GhcPs }
+//         : tyvarid '->' inj_varids
+
+where_type_family
+    :
+    WHERE ty_fam_inst_eqn_list
+    ;
+
+ty_fam_inst_eqn_list
+    :
+    open ty_fam_inst_eqns? close
+    | '{' '..' '}'
+    | open '..' close
+    ;
+
+ty_fam_inst_eqns
+    :
+    ty_fam_inst_eqn (';' ty_fam_inst_eqn)* ';'?
+    ;
+
+ty_fam_inst_eqn
+    :
+    // forall rule
+    type '=' ktype
     ;
 
 typecontext
@@ -803,6 +931,14 @@ semi : ';' | SEMI;
 literal : integer | pfloat | pchar | pstring;
 special : '(' | ')' | ',' | ';' | '[' | ']' | '`' | '{' | '}';
 
+
+// Expand this rule later
+// In GHC:
+// tyvarid : VARID | special_id | 'unsafe'
+//         | 'safe' | 'interruptible';
+
+tyvarid : varid;
+
 varid : (VARID | AS | HIDING) ({MagicHash}?'#'*);
 conid : CONID ({MagicHash}? '#'*);
 
@@ -831,7 +967,7 @@ integer
     DECIMAL
     | OCTAL
     | HEXADECIMAL
-     ;
+    ;
 
 
 pfloat: FLOAT;
@@ -897,7 +1033,7 @@ QUALIFIED: 'qualified';
 
 AS : 'as';
 HIDING : 'hiding';
-// FAMILY : 'family';
+FAMILY : 'family';
 
 CHAR : '\'' (' ' | DECIMAL | SMALL | LARGE
               | ASCSYMBOL | DIGIT | ',' | ';' | '(' | ')'

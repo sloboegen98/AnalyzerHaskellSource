@@ -421,7 +421,7 @@ cl_decl
 
 ty_decl
     :
-    (TYPE simpletype '=' type)
+    (TYPE type '=' ktypedoc)
     // TypeFamiles
     | (TYPE FAMILY type opt_tyfam_kind_sig opt_injective_info? where_type_family?)
     | (DATA (typecontext '=>')? simpletype ('=' constrs)? deriving?)
@@ -431,7 +431,25 @@ ty_decl
 
 inst_decl
     :
-    INSTANCE (scontext '=>')? qtycls inst (WHERE idecls)?
+    // (INSTANCE (scontext '=>')? qtycls inst (WHERE idecls)?)
+    (INSTANCE overlap_pragma? inst_type where_inst?)
+    | (TYPE INSTANCE ty_fam_inst_eqn)
+    | (DATA INSTANCE capi_ctype? tycl_hdr_inst)
+    // For GADT
+    ;
+
+overlap_pragma
+    :
+    '{-#' 'OVERLAPPABLE' '#-}'
+    | '{-#' 'OVERLAPPING' '#-}'
+    | '{-#' 'OVERLAPS' '#-}'
+    | '{-#' 'INCOHERENT' '#-}'
+    ;
+
+where_inst
+    :
+    // In GHC decllist_inst
+    WHERE idecls
     ;
 
 decls
@@ -486,10 +504,27 @@ gendecl
     | (fixity (DECIMAL)? ops)
     ;
 
+decl_cls
+    :
+    at_decl_cls
+    | decl
+    // default rule
+    ;
+
+decls_cls
+    :
+    decl_cls (semi decl_cls)* semi?
+    ;
+
+decllist_cls
+    :
+    open decls_cls? close
+    ;
+
 where_cls
     :
     // In GHC decls_cls
-    WHERE cdecls
+    WHERE decllist_cls
     ;
 
 ops
@@ -513,12 +548,10 @@ type
     | btype '->' ctype
     ;
 
-ctype
+typedoc
     :
-    // forall rule will be
-    | btype '=>' ctype
-    | var '::' type // not sure about this rule
-    | type
+    btype
+    | btype '->' ctypedoc
     ;
 
 btype
@@ -535,10 +568,42 @@ atype
     | ( '(' type ')' )
     ;
 
+sigtype
+    :
+    ctype
+    ;
+
 ktype
     :
     ctype
     | ctype '::' kind
+    ;
+
+ktypedoc
+    :
+    ctypedoc
+    | ctypedoc '::' kind
+    ;
+
+ctype
+    :
+    // forall rule will be
+    | btype '=>' ctype
+    | var '::' type // not sure about this rule
+    | type
+    ;
+
+ctypedoc
+    :
+    // forall rule
+    | tycl_context '=>' ctypedoc
+    | var '::' type
+    | typedoc
+    ;
+
+inst_type
+    :
+    sigtype
     ;
 
 // In GHC this rule is context
@@ -583,6 +648,11 @@ kind
     ctype
     ;
 
+constrs1
+    :
+
+    ;
+
 gtycon
     :
     qtycon
@@ -608,10 +678,29 @@ opt_injective_info
     '|' injectivity_cond
     ;
 
+opt_at_kind_inj_sig
+    :
+    '::' kind
+    | '=' tv_bndr '|' injectivity_cond
+    ;
+
 tycl_hdr
     :
     (tycl_context '=>' type)
     | type
+    ;
+
+tycl_hdr_inst
+    :
+    // forall rule
+    tycl_context '=>' type
+    | type
+    ;
+
+capi_ctype
+    :
+    '{-#' 'CTYPE' STRING STRING '#-}'
+    | '{-#' 'CTYPE' STRING '#-}'
     ;
 
 injectivity_cond
@@ -643,13 +732,20 @@ ty_fam_inst_eqn_list
 
 ty_fam_inst_eqns
     :
-    ty_fam_inst_eqn (SEMI ty_fam_inst_eqn)* SEMI?
+    ty_fam_inst_eqn (semi ty_fam_inst_eqn)* semi?
     ;
 
 ty_fam_inst_eqn
     :
     // forall rule
     type '=' ktype
+    ;
+
+at_decl_cls
+    :
+    DATA FAMILY? type opt_datafam_kind_sig
+    | TYPE FAMILY? opt_at_kind_inj_sig
+    | TYPE INSTANCE? ty_fam_inst_eqn
     ;
 
 typecontext

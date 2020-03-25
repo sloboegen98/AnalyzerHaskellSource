@@ -425,7 +425,7 @@ ty_decl
     // TypeFamiles
     | (TYPE FAMILY type opt_tyfam_kind_sig opt_injective_info? where_type_family?)
     | (DATA (typecontext '=>')? simpletype ('=' constrs)? deriving?)
-    | (DATA FAMILY type opt_datafam_kind_sig)
+    | (DATA FAMILY type opt_datafam_kind_sig?)
     | (NEWTYPE (typecontext '=>')? simpletype '=' newconstr deriving?)
     ;
 
@@ -434,7 +434,10 @@ inst_decl
     // (INSTANCE (scontext '=>')? qtycls inst (WHERE idecls)?)
     (INSTANCE overlap_pragma? inst_type where_inst?)
     | (TYPE INSTANCE ty_fam_inst_eqn)
+    // 'constrs' in the end of this rules in GHC
+    // This parser no use docs
     | (DATA INSTANCE capi_ctype? tycl_hdr_inst)
+    | (NEWTYPE INSTANCE capi_ctype? tycl_hdr_inst)
     // For GADT
     ;
 

@@ -343,7 +343,7 @@ pragmas
 
 pragma
     :
-    '{-#' 'LANGUAGE'  extension (',' extension)* '#-}'
+    '{-#' 'LANGUAGE'  extension (',' extension)* '#-}' SEMI?
     ;
 
 extension

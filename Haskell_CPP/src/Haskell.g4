@@ -643,7 +643,7 @@ ty_fam_inst_eqn_list
 
 ty_fam_inst_eqns
     :
-    ty_fam_inst_eqn (';' ty_fam_inst_eqn)* ';'?
+    ty_fam_inst_eqn (SEMI ty_fam_inst_eqn)* SEMI?
     ;
 
 ty_fam_inst_eqn

@@ -513,7 +513,8 @@ decl_cls
 
 decls_cls
     :
-    decl_cls (semi decl_cls)* semi?
+    // decl_cls (semi decl_cls)* semi?
+    (decl_cls semi+)* decl_cls semi*
     ;
 
 decllist_cls
@@ -556,16 +557,42 @@ typedoc
 
 btype
     :
-    atype+
+    tyapps
     ;
+
+tyapps
+    :
+    tyapp+
+    ;
+
+tyapp
+    :
+    atype
+    | qtyconop
+    | tyvarop
+    // | unpackedness
+    ;
+
+// atype
+//     :
+//     gtycon
+//     | varid
+//     | ( '(' type (',' type)* ')' )
+//     | ( '[' type ']' )
+//     | ( '(' type ')' )
+//     ;
 
 atype
     :
     gtycon
-    | varid
-    | ( '(' type (',' type)* ')' )
-    | ( '[' type ']' )
-    | ( '(' type ')' )
+    | tyvar
+    | '*'
+    | ('(' ')')
+    | ('(' ktype (',' ktype)* ')')
+    | ('[' ktype ']')
+    | ('(' ktype ')')
+    | ('[' ktype (',' ktype)* ']')
+    | '_'
     ;
 
 sigtype
@@ -576,7 +603,7 @@ sigtype
 ktype
     :
     ctype
-    | ctype '::' kind
+    | (ctype '::' kind)
     ;
 
 ktypedoc
@@ -620,7 +647,7 @@ tv_bndrs
 tv_bndr
     :
     tyvar
-    | '(' tyvar '::' kind ')'
+    | ('(' tyvar '::' kind ')')
     ;
 
 fds 
@@ -669,8 +696,8 @@ opt_datafam_kind_sig
 
 opt_tyfam_kind_sig
     :
-    '::' kind
-    | '=' tv_bndr
+    ('::' kind)
+    | ('=' tv_bndr)
     ;
 
 opt_injective_info
@@ -680,8 +707,8 @@ opt_injective_info
 
 opt_at_kind_inj_sig
     :
-    '::' kind
-    | '=' tv_bndr '|' injectivity_cond
+    ('::' kind)
+    | ('=' tv_bndr '|' injectivity_cond)
     ;
 
 tycl_hdr
@@ -693,21 +720,21 @@ tycl_hdr
 tycl_hdr_inst
     :
     // forall rule
-    tycl_context '=>' type
+    (tycl_context '=>' type)
     | type
     ;
 
 capi_ctype
     :
-    '{-#' 'CTYPE' STRING STRING '#-}'
-    | '{-#' 'CTYPE' STRING '#-}'
+    ('{-#' 'CTYPE' STRING STRING '#-}')
+    | ('{-#' 'CTYPE' STRING '#-}')
     ;
 
 injectivity_cond
     :
     // but in GHC new tyvarid rule
     tyvarid
-    | tyvarid '->' inj_varids
+    | (tyvarid '->' inj_varids)
     ;
 
 inj_varids
@@ -725,9 +752,9 @@ where_type_family
 
 ty_fam_inst_eqn_list
     :
-    open ty_fam_inst_eqns? close
-    | '{' '..' '}'
-    | open '..' close
+    (open ty_fam_inst_eqns? close)
+    | ('{' '..' '}')
+    | (open '..' close)
     ;
 
 ty_fam_inst_eqns
@@ -743,9 +770,9 @@ ty_fam_inst_eqn
 
 at_decl_cls
     :
-    DATA FAMILY? type opt_datafam_kind_sig
-    | TYPE FAMILY? type opt_at_kind_inj_sig
-    | TYPE INSTANCE? ty_fam_inst_eqn
+    (DATA FAMILY? type opt_datafam_kind_sig?)
+    | (TYPE FAMILY? type opt_at_kind_inj_sig?)
+    | (TYPE INSTANCE? ty_fam_inst_eqn)
     ;
 
 typecontext
@@ -1019,6 +1046,11 @@ qconop:  gconsym | ('`' qconid '`')	 ;
 op:      varop   | conop			 ;
 qop:     qvarop  | qconop			 ;
 gconsym: ':'  	 | qconsym			 ;
+
+qtyconop: qtyconsym | ('`' qtycon '`');
+qtyconsym:qconsym | qvarsym | tyconsym;
+tyconsym: consym | varsym | ':' | '-' | '.';
+tyvarop: '`' tyvarid '`';
 
 open : VOCURLY | OCURLY;
 close : VCCURLY | CCURLY;

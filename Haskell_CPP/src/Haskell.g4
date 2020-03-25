@@ -744,7 +744,7 @@ ty_fam_inst_eqn
 at_decl_cls
     :
     DATA FAMILY? type opt_datafam_kind_sig
-    | TYPE FAMILY? opt_at_kind_inj_sig
+    | TYPE FAMILY? type opt_at_kind_inj_sig
     | TYPE INSTANCE? ty_fam_inst_eqn
     ;
 

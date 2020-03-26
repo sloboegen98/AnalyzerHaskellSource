@@ -333,6 +333,7 @@ grammar Haskell;
 
     bool FunctionalDependencies = true;
     bool TypeFamilies = true;
+    bool GADTs = true;
 }
 
 // parser rules
@@ -423,12 +424,18 @@ cl_decl
 
 ty_decl
     :
+    // with TypeFamiles
     (TYPE type '=' ktypedoc)
-    // TypeFamiles
+    // type family declaration
     | (TYPE FAMILY type opt_tyfam_kind_sig opt_injective_info? where_type_family?)
+    // ordinary data type or newtype declaration
     | (DATA (typecontext '=>')? simpletype ('=' constrs)? deriving?)
-    | (DATA FAMILY type opt_datafam_kind_sig?)
     | (NEWTYPE (typecontext '=>')? simpletype '=' newconstr deriving?)
+    // GADT declaration
+    | (DATA capi_ctype? tycl_hdr opt_kind_sig? gadt_constrlist? deriving?)
+    | (NEWTYPE capi_ctype? tycl_hdr opt_kind_sig?)
+    // data family
+    | (DATA FAMILY type opt_datafam_kind_sig?)
     ;
 
 inst_decl
@@ -437,9 +444,11 @@ inst_decl
     | (TYPE INSTANCE ty_fam_inst_eqn)
     // 'constrs' in the end of this rules in GHC
     // This parser no use docs
-    | (DATA INSTANCE capi_ctype? tycl_hdr_inst)
-    | (NEWTYPE INSTANCE capi_ctype? tycl_hdr_inst)
+    | (DATA INSTANCE capi_ctype? tycl_hdr_inst deriving?)
+    | (NEWTYPE INSTANCE capi_ctype? tycl_hdr_inst deriving?)
     // For GADT
+    | (DATA INSTANCE capi_ctype? tycl_hdr_inst opt_kind_sig? gadt_constrlist? deriving?)
+    | (NEWTYPE INSTANCE capi_ctype? tycl_hdr_inst opt_kind_sig? gadt_constrlist? deriving?)
     ;
 
 overlap_pragma
@@ -604,6 +613,11 @@ sigtype
     ctype
     ;
 
+sigtypedoc
+    :
+    ctypedoc
+    ;
+
 ktype
     :
     ctype
@@ -679,9 +693,24 @@ kind
     ctype
     ;
 
-constrs1
+gadt_constrlist
     :
+    WHERE open gadt_constrs? close
+    ;
 
+gadt_constrs
+    :
+    gadt_constr_with_doc (semi gadt_constr_with_doc)* semi?
+    ;
+
+gadt_constr_with_doc
+    :
+    gadt_constr
+    ;
+
+gadt_constr
+    :
+    con_list '::' sigtypedoc
     ;
 
 gtycon
@@ -691,6 +720,11 @@ gtycon
     | ( '[' ']' )
     | ( '(' '->' ')' )
     | ( '(' ',' '{' ',' '}' ')' )
+    ;
+
+opt_kind_sig
+    :
+    '::' kind
     ;
 
 opt_datafam_kind_sig
@@ -1037,6 +1071,11 @@ gcon
     | ('[' ']')
     | ('(' (',')+ ')')
     | qcon
+    ;
+
+con_list
+    :
+    con (',' con)*
     ;
 
 var	:    varid   | ( '(' varsym ')' );

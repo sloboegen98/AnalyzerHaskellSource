@@ -334,6 +334,7 @@ grammar Haskell;
     bool FunctionalDependencies = true;
     bool TypeFamilies = true;
     bool GADTs = true;
+    bool StandaloneDeriving = true;
 }
 
 // parser rules
@@ -409,9 +410,10 @@ topdecl
     :
     cl_decl
     | ty_decl
-    // see about this rule
-    // | standalone_kind_sig
+    // Check KindSignatures
+    | standalone_kind_sig
     | inst_decl
+    | {StandaloneDeriving}? standalone_deriving
     | (DEFAULT '(' (type (',' type)*)? ')' )
     | (FOREIGN fdecl)
     | decl
@@ -436,6 +438,16 @@ ty_decl
     | (NEWTYPE capi_ctype? tycl_hdr opt_kind_sig?)
     // data family
     | (DATA FAMILY type opt_datafam_kind_sig?)
+    ;
+
+standalone_kind_sig
+    :
+    TYPE sks_vars '::' ktypedoc
+    ;
+
+sks_vars
+    :
+    oqtycon (',' oqtycon)*
     ;
 
 inst_decl
@@ -767,6 +779,24 @@ capi_ctype
     :
     ('{-#' 'CTYPE' STRING STRING '#-}')
     | ('{-#' 'CTYPE' STRING '#-}')
+    ;
+
+standalone_deriving
+    :
+    DERIVING deriv_standalone_strategy? INSTANCE overlap_pragma? inst_type
+    ;
+
+deriv_strategy_via
+    :
+    'via' type
+    ;
+
+deriv_standalone_strategy
+    :
+    'stock'
+    | 'anyclass'
+    | 'newtype'
+    | deriv_strategy_via
     ;
 
 injectivity_cond
@@ -1146,6 +1176,12 @@ qtycon : (modid '.')? tycon;
 qtycls : (modid '.')? tycls;
 qvarsym: (modid '.')? varsym;
 qconsym: (modid '.')? consym;
+
+oqtycon
+    :
+    qtycon
+    | ('(' qtyconsym ')')
+    ;
 
 integer
     :

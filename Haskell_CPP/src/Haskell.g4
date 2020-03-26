@@ -513,7 +513,8 @@ idecl
 
 gendecl
     :
-    vars '::' (typecontext '=>')? type
+    // vars '::' (typecontext '=>')? type
+    vars '::' ctype
     | (fixity (DECIMAL)? ops)
     ;
 
@@ -823,7 +824,7 @@ cls
     :
     (conid varid)
     // Flexible Context and MultiParamTypeClasses
-    | (conid multiparams) 
+    | (conid multiparams)
     | ( qtycls '(' tyvar (atype (',' atype)*) ')' )
     ;
 

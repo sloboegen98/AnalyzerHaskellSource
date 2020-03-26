@@ -822,7 +822,20 @@ typecontext
 cls
     :
     (conid varid)
+    // Flexible Context and MultiParamTypeClasses
+    | (conid multiparams) 
     | ( qtycls '(' tyvar (atype (',' atype)*) ')' )
+    ;
+
+multiparams
+    :
+    multiparam+
+    ;
+
+multiparam
+    :
+    qvarid
+    | qconid
     ;
 
 scontext

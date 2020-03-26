@@ -48,7 +48,7 @@ grammar Haskell;
     // Check moment, when you should calculate start indent
     // module ... where {now you should remember start indent}
     bool module_start_indent = false;
-    bool was_module_export   = false; 
+    bool was_module_export   = false;
 
     // Haskell saves indent before first symbol as null indent
     int start_indent = -1;
@@ -143,7 +143,7 @@ grammar Haskell;
             && next->getType() != NEWLINE
             && next->getType() != WS
             && next->getType() != TAB
-            && next->getType() != OCURLY) { 
+            && next->getType() != OCURLY) {
             if (next->getType() == MODULE) {
                 module_start_indent = true;
                 was_module_export = true;
@@ -157,7 +157,7 @@ grammar Haskell;
                 start_indent = next->getCharPositionInLine();
                 tokenQueue.push_back(createToken(VOCURLY, "VOCURLY", st_ind));
                 tokenQueue.push_back(createToken(next->getType(), next->getText(), st_ind));
-                
+
                 auto ptr = std::move(tokenQueue.front());
                 tokenQueue.pop_front();
                 return ptr;
@@ -668,7 +668,7 @@ tv_bndr
     | ('(' tyvar '::' kind ')')
     ;
 
-fds 
+fds
     :
     '|' fds1
     ;

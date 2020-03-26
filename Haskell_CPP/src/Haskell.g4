@@ -330,6 +330,9 @@ grammar Haskell;
     bool MultiWayIf = true;
     bool MagicHash  = true;
     bool FlexibleInstances = true;
+
+    bool FunctionalDependencies = true;
+    bool TypeFamilies = true;
 }
 
 // parser rules
@@ -415,7 +418,6 @@ topdecl
 
 cl_decl
     :
-    // CLASS (scontext '=>')? tycls tyvar (WHERE cdecls)?
     CLASS tycl_hdr fds? where_cls?
     ;
 
@@ -431,7 +433,6 @@ ty_decl
 
 inst_decl
     :
-    // (INSTANCE (scontext '=>')? qtycls inst (WHERE idecls)?)
     (INSTANCE overlap_pragma? inst_type where_inst?)
     | (TYPE INSTANCE ty_fam_inst_eqn)
     // 'constrs' in the end of this rules in GHC

@@ -335,6 +335,7 @@ grammar Haskell;
     bool TypeFamilies = true;
     bool GADTs = true;
     bool StandaloneDeriving = true;
+    bool DerivingVia = true;
 }
 
 // parser rules
@@ -664,6 +665,11 @@ inst_type
     sigtype
     ;
 
+deriv_types
+    :
+    ktypedoc (',' ktypedoc)*
+    ;
+
 // In GHC this rule is context
 tycl_context
     :
@@ -784,6 +790,13 @@ capi_ctype
 standalone_deriving
     :
     DERIVING deriv_standalone_strategy? INSTANCE overlap_pragma? inst_type
+    ;
+
+deriv_strategy_no_via
+    :
+    'stock'
+    | 'anyclass'
+    | 'newtype'
     ;
 
 deriv_strategy_via
@@ -908,9 +921,23 @@ fielddecl
     vars '::' (type | ('!' atype))
     ;
 
+// deriving
+//     :
+//     DERIVING (dclass | ('(' (dclass (',' dclass)*)? ')' ))
+//     ;
+
 deriving
     :
-    DERIVING (dclass | ('(' (dclass (',' dclass)*)? ')' ))
+    (DERIVING deriv_clause_types)
+    | (DERIVING deriv_strategy_no_via deriv_clause_types)
+    | (DERIVING deriv_clause_types {DerivingVia}? deriv_strategy_via)
+    ;
+
+deriv_clause_types
+    :
+    qtycon
+    | '(' ')'
+    | '(' deriv_types ')'
     ;
 
 dclass

@@ -600,15 +600,6 @@ tyapp
     // | unpackedness
     ;
 
-// atype
-//     :
-//     gtycon
-//     | varid
-//     | ( '(' type (',' type)* ')' )
-//     | ( '[' type ']' )
-//     | ( '(' type ')' )
-//     ;
-
 atype
     :
     gtycon
@@ -632,6 +623,12 @@ sigtypedoc
     ctypedoc
     ;
 
+forall_vis_flag
+    :
+    '.'
+    | '->'
+    ;
+
 ktype
     :
     ctype
@@ -646,7 +643,7 @@ ktypedoc
 
 ctype
     :
-    // forall rule will be
+    FORALL tv_bndrs forall_vis_flag ctype
     | btype '=>' ctype
     | var '::' type // not sure about this rule
     | type
@@ -654,7 +651,7 @@ ctype
 
 ctypedoc
     :
-    // forall rule
+    FORALL tv_bndrs forall_vis_flag ctypedoc
     | tycl_context '=>' ctypedoc
     | var '::' type
     | typedoc
@@ -776,8 +773,9 @@ tycl_hdr
 
 tycl_hdr_inst
     :
-    // forall rule
-    (tycl_context '=>' type)
+    (FORALL tv_bndrs '.' tycl_context '=>' type)
+    | (FORALL tv_bndr '.' type) 
+    | (tycl_context '=>' type)
     | type
     ;
 
@@ -846,8 +844,8 @@ ty_fam_inst_eqns
 
 ty_fam_inst_eqn
     :
-    // forall rule
-    type '=' ktype
+    FORALL tv_bndrs '.' type '=' ktype
+    | type '=' ktype
     ;
 
 at_decl_cls
@@ -1181,7 +1179,7 @@ special : '(' | ')' | ',' | ';' | '[' | ']' | '`' | '{' | '}';
 
 tyvarid : varid;
 
-varid : (VARID | AS | HIDING) ({MagicHash}?'#'*);
+varid : (VARID | AS | HIDING | FORALL) ({MagicHash}? '#'*);
 conid : CONID ({MagicHash}? '#'*);
 
 symbol: ascSymbol;
@@ -1282,6 +1280,7 @@ QUALIFIED: 'qualified';
 AS : 'as';
 HIDING : 'hiding';
 FAMILY : 'family';
+FORALL : 'forall';
 
 CHAR : '\'' (' ' | DECIMAL | SMALL | LARGE
               | ASCSYMBOL | DIGIT | ',' | ';' | '(' | ')'

@@ -1,17 +1,25 @@
-*.java
-equals/test/student
-*.class
+# antlr generated
+*.antlr
+*.interp
+*.tokens
 *Parser*
 *Lexer*
-!Lexer.g4
-*.o
-*.tokens
-*.interp
-parsertestexe
-tree.dot
-result/
-src/.antlr
+
+# vscode
 .vscode
+
+# local testing
 student*
-out*
+result/
 ans.txt
+Analyzer/tmp
+
+# other generated
+*.o
+*.java
+*.class
+parsertestexe
+full_text.txt
+report.txt
+
+Haskell_Java

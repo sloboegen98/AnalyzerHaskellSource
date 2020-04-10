@@ -13,7 +13,7 @@ antlr:
 	$(ANTLR) -Dlanguage=Cpp src/${GRAMMAR}".g4" -no-listener
 
 compile:
-	g++ src/*.cpp -g $(INCLUDE) $(LINK) $(LIBPATH) -std=c++17 -w -o parsertestexe
+	g++ src/*.cpp -g $(INCLUDE) $(LINK) $(LIBPATH) -std=c++17 -o parsertestexe
 
 grun:
 	$(GRUN) $(GRAMMAR) $(ROOT) -gui $(TEST) 

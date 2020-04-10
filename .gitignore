@@ -19,7 +19,10 @@ Analyzer/tmp
 *.java
 *.class
 parsertestexe
-full_text.txt
-report.txt
+
+# helpers in analysis
+full_text*
+full_list*
+report*
 
 Haskell_Java

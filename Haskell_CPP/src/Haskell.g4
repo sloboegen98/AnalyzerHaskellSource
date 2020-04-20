@@ -247,7 +247,6 @@ grammar Haskell;
             }
 
             if (indentCount == getSavedIndent()) {
-                std::cout << "HERE!!!\n";
                 tokenQueue.push_back(createToken(SEMI, "SEMI", st_ind));
             }
 
@@ -321,10 +320,6 @@ grammar Haskell;
         }
 
         pendingDent = true;
-
-        // if (prev_was_endl && next->getType() != NEWLINE) {
-        //     prev_was_endl = false;
-        // }
 
         tokenQueue.push_back(std::move(next));
         auto p = std::move(tokenQueue.front());
@@ -1264,6 +1259,19 @@ WS : [\u0020\u00a0\u1680\u2000\u200a\u202f\u205f\u3000]+ {
         indentCount += getText().length();
     }
 } ;
+
+
+// For CPP extension
+// read about
+// https://medium.com/swiftify/parsing-preprocessor-directives-in-objective-c-714a3dde570
+// directives are skip now
+MultiLineMacro
+   : '#' (~ [\n]*? '\\' '\r'? '\n')+ ~ [\n]+ -> skip
+   ;
+
+Directive
+   : '#' ~ [\n]* -> skip
+   ;
 
 COMMENT  : '--' (~[\r\n])* -> skip;
 NCOMMENT : '{-'~[#] .*? '-}' -> skip;

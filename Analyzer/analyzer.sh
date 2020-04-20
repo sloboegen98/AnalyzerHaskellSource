@@ -1,7 +1,9 @@
 #!/bin/bash
 
-full_report="full_list.txt"
-report="report.txt"
+# full_report="full_list.txt"
+# report="report.txt"
+full_report="$2"
+report="$3"
 
 if [ -f $full_report ] ; then
     rm $full_report
@@ -11,13 +13,13 @@ if [ -f $report ] ; then
     rm $report
 fi
 
-touch full_text.txt
-touch report.txt
+touch $full_report
+touch $report
 
 echo "Counting started..."
-./counter.sh "$1"
+./counter.sh "$1" $full_report
 
-echo "Process $full_report.txt file..."
-python3 process_fl.py
+echo "Process $full_report file..."
+python3 process_fl.py $full_report $report
 
-echo "Results in report.txt"
+echo "Results in ${report}"

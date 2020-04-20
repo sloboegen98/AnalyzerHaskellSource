@@ -52,7 +52,10 @@ def fill_implies():
 
 implies = fill_implies()
 
-fl = open("full_list.txt", "r")
+full_report = sys.argv[1]
+report      = sys.argv[2]
+
+fl = open(full_report, "r")
 
 helplist = set()
 for line in fl:
@@ -70,17 +73,9 @@ for line in helplist:
     ext, pack = line.split()
     extcounter[ext] += 1
 
-# diff with full_list.txt with implies
-# 
-# with open('extpack.txt', 'w') as f:
-#     for ep in helplist:
-#         e, p = ep.split()
-#         f.write(e + ' ' + p + '\n')
-#     f.close()
-
 sortlist = extcounter.most_common()
 
-with open('report.txt', 'w') as f:
+with open(report, 'w') as f:
     for ec in sortlist:
         f.write(str(ec[0]) + ' ' + str(ec[1]) + ' ' + '\n')
     f.close()

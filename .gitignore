@@ -13,6 +13,7 @@ student*
 result/
 ans.txt
 Analyzer/tmp
+Analyzer/stackage/
 
 # other generated
 *.o

@@ -23,9 +23,11 @@ for s in res:
     elif ext:
         used_ext.add(s)
 
-ans = filter(lambda e : e[0].isupper(), used_ext)
+ans = filter(lambda e : len(e) > 0 and e[0].isupper(), used_ext)
 
-with open('full_list.txt', 'a') as f:
+
+full_report = sys.argv[3]
+with open(full_report, 'a') as f:
     for e in ans:
         if '\n' not in e:
             f.write(e + ' ' + package + '\n')

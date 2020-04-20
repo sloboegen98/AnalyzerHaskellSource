@@ -154,6 +154,9 @@ grammar Haskell;
                 prev_was_keyword = false;
                 nested_level = 0;
                 module_start_indent = false;
+                
+                prev_was_endl = false;
+
                 start_indent = next->getCharPositionInLine();
                 tokenQueue.push_back(createToken(VOCURLY, "VOCURLY", st_ind));
                 tokenQueue.push_back(createToken(next->getType(), next->getText(), st_ind));
@@ -244,6 +247,7 @@ grammar Haskell;
             }
 
             if (indentCount == getSavedIndent()) {
+                std::cout << "HERE!!!\n";
                 tokenQueue.push_back(createToken(SEMI, "SEMI", st_ind));
             }
 
@@ -318,6 +322,10 @@ grammar Haskell;
 
         pendingDent = true;
 
+        // if (prev_was_endl && next->getType() != NEWLINE) {
+        //     prev_was_endl = false;
+        // }
+
         tokenQueue.push_back(std::move(next));
         auto p = std::move(tokenQueue.front());
         tokenQueue.pop_front();
@@ -340,7 +348,22 @@ grammar Haskell;
 
 // parser rules
 
-module :  semi* pragmas? semi* ((MODULE modid exports? WHERE open body close semi*) | body) EOF;
+module :  semi* pragmas? semi* (module_content | body) EOF;
+
+module_content
+    :
+    MODULE modid exports? where_module
+    ;
+
+where_module
+    :
+    WHERE module_body
+    ;
+
+module_body
+    :
+    open body close semi*
+    ;
 
 pragmas
     :
@@ -391,7 +414,7 @@ impspec
     :
     ('(' (himport (',' himport)* ','?)? ')')
     | ( 'hiding' '(' (himport (',' himport)* ','?)? ')' )
-     ;
+    ;
 
 himport
     :

@@ -147,7 +147,7 @@ grammar Haskell;
             if (next->getType() == MODULE) {
                 module_start_indent = true;
                 was_module_export = true;
-            } if (next->getType() != MODULE && !module_start_indent) {
+            } if (next->getType() != MODULE && last_key_word == "where" && !module_start_indent) {
                 start_indent = next->getCharPositionInLine();
             } else if (last_key_word == "where" && module_start_indent) {
                 last_key_word = "";

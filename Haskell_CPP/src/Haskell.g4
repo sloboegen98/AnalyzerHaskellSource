@@ -1022,6 +1022,22 @@ guard
     | infixexp
     ;
 
+quasiquote
+    :
+    th_quasiquote
+    | th_qquasiquote
+    ;
+
+th_quasiquote
+    :
+    '[' varid '|'
+    ;
+
+th_qquasiquote
+    :
+    '[' qvarid '|'
+    ;
+
 exp
     :
     (infixexp '::' sigtype)
@@ -1067,6 +1083,35 @@ aexp
     | ( '(' qop infixexp ')' )
     | ( qcon '{' (fbind (',' fbind))? '}' )
     | ('{' fbind (',' fbind)* '}')+
+    // Template Haskell
+    | splice_untyped
+    | splice_typed
+    | '[|' exp '|]'
+    | '[||' exp '||]'
+    | '[t|' ktype '|]'
+    | '[p|' infixexp '|]'
+    | '[d|' cvtopbody '|]'
+    | quasiquote
+    ;
+
+splice_untyped
+    :
+    '$' aexp
+    ;
+
+splice_typed
+    :
+    '$$' aexp
+    ;
+
+cvtopbody
+    :
+    open cvtopdecls0? close
+    ;
+
+cvtopdecls0
+    :
+    topdecls semi*
     ;
 
 qual

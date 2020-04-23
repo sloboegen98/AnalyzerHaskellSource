@@ -196,9 +196,11 @@ grammar Haskell;
         if (ignore_indent
             && (next->getType() == WHERE
             || next->getType() == DO
+            || next->getType() == MDO
             || next->getType() == LET
             || next->getType() == OF
             || next->getType() == LCASE
+            || next->getType() == REC
             || next->getType() == CCURLY)
            ) {
             ignore_indent = false;
@@ -225,8 +227,10 @@ grammar Haskell;
             && next->getType() != WHERE
             && next->getType() != IN
             && next->getType() != DO
+            && next->getType() != MDO
             && next->getType() != OF
             && next->getType() != LCASE
+            && next->getType() != REC
             && next->getType() != CCURLY
             && next->getType() != EOF) {
 
@@ -289,8 +293,10 @@ grammar Haskell;
         if (next->getType() == WHERE
             || next->getType() == LET
             || next->getType() == DO
+            || next->getType() == MDO
             || next->getType() == OF
-            || next->getType() == LCASE) {
+            || next->getType() == LCASE
+            || next->getType() == REC) {
             // if next will be OCURLY need to decrement nested_level
             nested_level++;
             prev_was_keyword = true;
@@ -298,7 +304,7 @@ grammar Haskell;
             last_key_word = next->getText();
 
             if (next->getType() == WHERE) {
-                if (!indentStack.empty() && indentStack.top().first == "do") {
+                if (!indentStack.empty() && (indentStack.top().first == "do" || indentStack.top().first == "mdo")) {
                     tokenQueue.push_back(createToken(SEMI, "SEMI", st_ind));
                     tokenQueue.push_back(createToken(VCCURLY, "VCCURLY", st_ind));
                     indentStack.pop();
@@ -344,6 +350,7 @@ grammar Haskell;
     bool DerivingVia = true;
     bool LambdaCase = true;
     bool EmptyCase  = true;
+    bool RecursiveDo = true;
 }
 
 // parser rules
@@ -1047,6 +1054,7 @@ lexp
     | ({MultiWayIf}? IF ifgdpats)
     | (CASE exp OF alts)
     | (DO stmts)
+    | ({RecursiveDo}? MDO stmts)
     | fexp
     ;
 
@@ -1112,14 +1120,13 @@ gdpat
 
 stmts
     :
-    open (stmt)* exp semi* close
+    open stmt* close
     ;
 
 stmt
     :
-    (exp semi+)
-    | (pat '<-' exp semi+)
-    | (LET decls semi+)
+    (qual)
+    | ({RecursiveDo}? REC stmts)
     | semi+
     ;
 
@@ -1319,7 +1326,9 @@ AS     : 'as'    ;
 HIDING : 'hiding';
 FAMILY : 'family';
 FORALL : 'forall';
-LCASE  : '\\case' ;
+LCASE  : '\\case';
+MDO    : 'mdo'   ;
+REC    : 'rec'   ;
 VIA    : 'via'   ;
 
 CHAR : '\'' (' ' | DECIMAL | SMALL | LARGE

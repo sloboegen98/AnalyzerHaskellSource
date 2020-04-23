@@ -198,6 +198,7 @@ grammar Haskell;
             || next->getType() == DO
             || next->getType() == LET
             || next->getType() == OF
+            || next->getType() == LCASE
             || next->getType() == CCURLY)
            ) {
             ignore_indent = false;
@@ -225,6 +226,7 @@ grammar Haskell;
             && next->getType() != IN
             && next->getType() != DO
             && next->getType() != OF
+            && next->getType() != LCASE
             && next->getType() != CCURLY
             && next->getType() != EOF) {
 
@@ -287,7 +289,8 @@ grammar Haskell;
         if (next->getType() == WHERE
             || next->getType() == LET
             || next->getType() == DO
-            || next->getType() == OF) {
+            || next->getType() == OF
+            || next->getType() == LCASE) {
             // if next will be OCURLY need to decrement nested_level
             nested_level++;
             prev_was_keyword = true;
@@ -339,6 +342,8 @@ grammar Haskell;
     bool GADTs = true;
     bool StandaloneDeriving = true;
     bool DerivingVia = true;
+    bool LambdaCase = true;
+    bool EmptyCase  = true;
 }
 
 // parser rules
@@ -1037,6 +1042,7 @@ lexp
     :
     ('\\' apat+ '->' exp)
     | (LET decls IN exp)
+    | ({LambdaCase}? LCASE alts)
     | (IF exp semi? THEN exp semi? ELSE exp)
     | ({MultiWayIf}? IF ifgdpats)
     | (CASE exp OF alts)
@@ -1074,7 +1080,8 @@ qual
 
 alts
     :
-    open (alt semi+)+ close
+    (open (alt semi+)+ close)
+    | ({EmptyCase}? open close)
     ;
 
 alt
@@ -1308,10 +1315,12 @@ WHERE    : 'where'   ;
 WILDCARD : '_'       ;
 QUALIFIED: 'qualified';
 
-AS : 'as';
+AS     : 'as'    ;
 HIDING : 'hiding';
 FAMILY : 'family';
 FORALL : 'forall';
+LCASE  : '\\case' ;
+VIA    : 'via'   ;
 
 CHAR : '\'' (' ' | DECIMAL | SMALL | LARGE
               | ASCSYMBOL | DIGIT | ',' | ';' | '(' | ')'

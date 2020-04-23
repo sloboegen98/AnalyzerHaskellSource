@@ -949,11 +949,6 @@ fielddecl
     vars '::' (type | ('!' atype))
     ;
 
-// deriving
-//     :
-//     DERIVING (dclass | ('(' (dclass (',' dclass)*)? ')' ))
-//     ;
-
 deriving
     :
     (DERIVING deriv_clause_types)
@@ -966,11 +961,6 @@ deriv_clause_types
     qtycon
     | '(' ')'
     | '(' deriv_types ')'
-    ;
-
-dclass
-    :
-    qtycls
     ;
 
 inst
@@ -1034,7 +1024,7 @@ guard
 
 exp
     :
-    (infixexp '::' (typecontext '=>')? type)
+    (infixexp '::' sigtype)
     | infixexp
     ;
 

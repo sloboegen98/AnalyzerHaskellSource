@@ -4,16 +4,18 @@
 *.tokens
 *Parser*
 *Lexer*
+!HaskellBaseLexer.cpp
+!*.g4
 
 # vscode
 .vscode
 
 # local testing
 student*
-result/
 ans.txt
 Analyzer/tmp
 Analyzer/stackage/
+ghc-master-testsuite*
 
 # other generated
 *.o
@@ -25,5 +27,3 @@ parsertestexe
 full_text*
 full_list*
 report*
-
-Haskell_Java

@@ -1,6 +1,5 @@
 #!/bin/bash
 
-mkdir -p result
 rm -f ans.txt
 
 touch ans.txt

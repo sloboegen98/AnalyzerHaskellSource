@@ -112,12 +112,9 @@ std::unique_ptr <antlr4::Token> HaskellBaseLexer::nextToken() {
     // For debug
     // std::cout << next->toString() << std::endl;
 
-    // if (next->getText() == "{-#") {
-    //     in_pragmas = true;
-    // } else if (next->getText() == "#-}") {
-    //     std::cout << start_indent << std::endl;
-    //     in_pragmas = false;
-    // }
+    if (next->getType() == HaskellLexer::OpenPragmaBracket) {
+        in_pragmas = true;
+    }
 
     if (start_indent == -1
         && next->getType() != HaskellLexer::NEWLINE
@@ -127,7 +124,7 @@ std::unique_ptr <antlr4::Token> HaskellBaseLexer::nextToken() {
         if (next->getType() == HaskellLexer::MODULE) {
             module_start_indent = true;
             was_module_export = true;
-        } else if (next->getType() != HaskellLexer::MODULE && !module_start_indent) {
+        } else if (next->getType() != HaskellLexer::MODULE && !module_start_indent && !in_pragmas) {
             start_indent = next->getCharPositionInLine();
         } else if (last_key_word == "where" && module_start_indent) {
             last_key_word = "";
@@ -145,6 +142,10 @@ std::unique_ptr <antlr4::Token> HaskellBaseLexer::nextToken() {
             tokenQueue.pop_front();
             return ptr;
         }
+    }
+
+    if (next->getType() == HaskellLexer::ClosePragmaBracket){
+        in_pragmas = false;
     }
 
     if (next->getType() == HaskellLexer::OCURLY) {

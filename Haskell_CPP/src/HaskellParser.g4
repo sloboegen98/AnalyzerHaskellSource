@@ -23,12 +23,12 @@ module :  semi* pragmas? semi* (module_content | body) EOF;
 
 module_content
     :
-    MODULE modid exports? where_module
+    'module' modid exports? where_module
     ;
 
 where_module
     :
-    WHERE module_body
+    'where' module_body
     ;
 
 module_body
@@ -73,12 +73,12 @@ exprt
     qvar
     | ( qtycon ( ('(' '..' ')') | ('(' (cname (',' cname)*)? ')') )? )
     | ( qtycls ( ('(' '..' ')') | ('(' (qvar (',' qvar)*)? ')') )? )
-    | ( MODULE modid )
+    | ( 'module' modid )
     ;
 
 impdecl
     :
-    IMPORT QUALIFIED? modid ('as' modid)? impspec? semi+
+    'import' 'qualified'? modid ('as' modid)? impspec? semi+
     ;
 
 impspec
@@ -109,35 +109,35 @@ topdecl
     | standalone_kind_sig
     | inst_decl
     | {StandaloneDeriving}? standalone_deriving
-    | (DEFAULT '(' (type (',' type)*)? ')' )
-    | (FOREIGN fdecl)
+    | ('default' '(' (type (',' type)*)? ')' )
+    | ('foreign' fdecl)
     | decl
     ;
 
 cl_decl
     :
-    CLASS tycl_hdr fds? where_cls?
+    'class' tycl_hdr fds? where_cls?
     ;
 
 ty_decl
     :
     // with TypeFamiles
-    (TYPE type '=' ktypedoc)
+    ('type' type '=' ktypedoc)
     // type family declaration
-    | (TYPE FAMILY type opt_tyfam_kind_sig opt_injective_info? where_type_family?)
+    | ('type' 'family' type opt_tyfam_kind_sig opt_injective_info? where_type_family?)
     // ordinary data type or newtype declaration
-    | (DATA (typecontext '=>')? simpletype ('=' constrs)? deriving?)
-    | (NEWTYPE (typecontext '=>')? simpletype '=' newconstr deriving?)
+    | ('data' (typecontext '=>')? simpletype ('=' constrs)? deriving?)
+    | ('newtype' (typecontext '=>')? simpletype '=' newconstr deriving?)
     // GADT declaration
-    | (DATA capi_ctype? tycl_hdr opt_kind_sig? gadt_constrlist? deriving?)
-    | (NEWTYPE capi_ctype? tycl_hdr opt_kind_sig?)
+    | ('data' capi_ctype? tycl_hdr opt_kind_sig? gadt_constrlist? deriving?)
+    | ('newtype' capi_ctype? tycl_hdr opt_kind_sig?)
     // data family
-    | (DATA FAMILY type opt_datafam_kind_sig?)
+    | ('data' 'family' type opt_datafam_kind_sig?)
     ;
 
 standalone_kind_sig
     :
-    TYPE sks_vars '::' ktypedoc
+    'type' sks_vars '::' ktypedoc
     ;
 
 sks_vars
@@ -147,15 +147,15 @@ sks_vars
 
 inst_decl
     :
-    (INSTANCE overlap_pragma? inst_type where_inst?)
-    | (TYPE INSTANCE ty_fam_inst_eqn)
+    ('instance' overlap_pragma? inst_type where_inst?)
+    | ('type' 'instance' ty_fam_inst_eqn)
     // 'constrs' in the end of this rules in GHC
     // This parser no use docs
-    | (DATA INSTANCE capi_ctype? tycl_hdr_inst deriving?)
-    | (NEWTYPE INSTANCE capi_ctype? tycl_hdr_inst deriving?)
+    | ('data' 'instance' capi_ctype? tycl_hdr_inst deriving?)
+    | ('newtype' 'instance' capi_ctype? tycl_hdr_inst deriving?)
     // For GADT
-    | (DATA INSTANCE capi_ctype? tycl_hdr_inst opt_kind_sig? gadt_constrlist? deriving?)
-    | (NEWTYPE INSTANCE capi_ctype? tycl_hdr_inst opt_kind_sig? gadt_constrlist? deriving?)
+    | ('data' 'instance' capi_ctype? tycl_hdr_inst opt_kind_sig? gadt_constrlist? deriving?)
+    | ('newtype' 'instance' capi_ctype? tycl_hdr_inst opt_kind_sig? gadt_constrlist? deriving?)
     ;
 
 overlap_pragma
@@ -169,7 +169,7 @@ overlap_pragma
 where_inst
     :
     // In GHC decllist_inst
-    WHERE idecls
+    'where' idecls
     ;
 
 decls
@@ -246,7 +246,7 @@ decllist_cls
 where_cls
     :
     // In GHC decls_cls
-    WHERE decllist_cls
+    'where' decllist_cls
     ;
 
 ops
@@ -261,7 +261,7 @@ vars
 
 fixity
     :
-    INFIX | INFIXL | INFIXL
+    'infix' | 'infixl' | 'infixr'
     ;
 
 type
@@ -337,7 +337,7 @@ ktypedoc
 
 ctype
     :
-    FORALL tv_bndrs forall_vis_flag ctype
+    'forall' tv_bndrs forall_vis_flag ctype
     | btype '=>' ctype
     | var '::' type // not sure about this rule
     | type
@@ -345,7 +345,7 @@ ctype
 
 ctypedoc
     :
-    FORALL tv_bndrs forall_vis_flag ctypedoc
+    'forall' tv_bndrs forall_vis_flag ctypedoc
     | tycl_context '=>' ctypedoc
     | var '::' type
     | typedoc
@@ -405,7 +405,7 @@ kind
 
 gadt_constrlist
     :
-    WHERE open gadt_constrs? close
+    'where' open gadt_constrs? close
     ;
 
 gadt_constrs
@@ -467,8 +467,8 @@ tycl_hdr
 
 tycl_hdr_inst
     :
-    (FORALL tv_bndrs '.' tycl_context '=>' type)
-    | (FORALL tv_bndr '.' type) 
+    ('forall' tv_bndrs '.' tycl_context '=>' type)
+    | ('forall' tv_bndr '.' type) 
     | (tycl_context '=>' type)
     | type
     ;
@@ -481,7 +481,7 @@ capi_ctype
 
 standalone_deriving
     :
-    DERIVING deriv_standalone_strategy? INSTANCE overlap_pragma? inst_type
+    'deriving' deriv_standalone_strategy? 'instance' overlap_pragma? inst_type
     ;
 
 deriv_strategy_no_via
@@ -521,7 +521,7 @@ inj_varids
 
 where_type_family
     :
-    WHERE ty_fam_inst_eqn_list
+    'where' ty_fam_inst_eqn_list
     ;
 
 ty_fam_inst_eqn_list
@@ -538,15 +538,15 @@ ty_fam_inst_eqns
 
 ty_fam_inst_eqn
     :
-    FORALL tv_bndrs '.' type '=' ktype
+    'forall' tv_bndrs '.' type '=' ktype
     | type '=' ktype
     ;
 
 at_decl_cls
     :
-    (DATA FAMILY? type opt_datafam_kind_sig?)
-    | (TYPE FAMILY? type opt_at_kind_inj_sig?)
-    | (TYPE INSTANCE? ty_fam_inst_eqn)
+    ('data' 'family'? type opt_datafam_kind_sig?)
+    | ('type' 'family'? type opt_at_kind_inj_sig?)
+    | ('type' 'instance'? ty_fam_inst_eqn)
     ;
 
 typecontext
@@ -615,9 +615,9 @@ fielddecl
 
 deriving
     :
-    (DERIVING deriv_clause_types)
-    | (DERIVING deriv_strategy_no_via deriv_clause_types)
-    | (DERIVING deriv_clause_types {DerivingVia}? deriv_strategy_via)
+    ('deriving' deriv_clause_types)
+    | ('deriving' deriv_strategy_no_via deriv_clause_types)
+    | ('deriving' deriv_clause_types {DerivingVia}? deriv_strategy_via)
     ;
 
 deriv_clause_types
@@ -639,8 +639,8 @@ inst
 
 fdecl
     :
-    (IMPORT callconv safety? impent var '::' type)
-    | (EXPORT callconv expent var '::' type)
+    ('import' callconv safety? impent var '::' type)
+    | ('export' callconv expent var '::' type)
     ;
 
 callconv
@@ -661,8 +661,8 @@ funlhs
 
 rhs
     :
-    ('=' exp (WHERE decls)?)
-    | (gdrhs (WHERE decls)?);
+    ('=' exp ('where' decls)?)
+    | (gdrhs ('where' decls)?);
 
 gdrhs
     :
@@ -682,7 +682,7 @@ guards
 guard
     :
     pat '<-' infixexp
-    | LET decls
+    | 'let' decls
     | infixexp
     ;
 
@@ -718,13 +718,13 @@ infixexp
 lexp
     :
     ('\\' apat+ '->' exp)
-    | (LET decls IN exp)
+    | ('let' decls 'in' exp)
     | ({LambdaCase}? LCASE alts)
-    | (IF exp semi? THEN exp semi? ELSE exp)
-    | ({MultiWayIf}? IF ifgdpats)
-    | (CASE exp OF alts)
-    | (DO stmts)
-    | ({RecursiveDo}? MDO stmts)
+    | ('if' exp semi? 'then' exp semi? 'else' exp)
+    | ({MultiWayIf}? 'if' ifgdpats)
+    | ('case' exp 'of' alts)
+    | ('do' stmts)
+    | ({RecursiveDo}? 'mdo' stmts)
     | fexp
     ;
 
@@ -781,7 +781,7 @@ cvtopdecls0
 qual
     :
     (pat '<-' exp)
-    | (LET decls)
+    | ('let' decls)
     | exp
     ;
 
@@ -793,8 +793,8 @@ alts
 
 alt
     :
-    (pat '->' exp (WHERE decls)?)
-    | (pat gdpats (WHERE decls)?)
+    (pat '->' exp ('where' decls)?)
+    | (pat gdpats ('where' decls)?)
     ;
 
 gdpats
@@ -825,7 +825,7 @@ stmts
 stmt
     :
     (qual)
-    | ({RecursiveDo}? REC stmts)
+    | ({RecursiveDo}? 'rec' stmts)
     | semi+
     ;
 
@@ -910,7 +910,7 @@ special : '(' | ')' | ',' | ';' | '[' | ']' | '`' | '{' | '}';
 
 tyvarid : varid;
 
-varid : (VARID | AS | HIDING | FORALL) ({MagicHash}? '#'*);
+varid : (VARID | 'as' | 'hiding' | 'forall') ({MagicHash}? '#'*);
 conid : CONID ({MagicHash}? '#'*);
 
 symbol: ascSymbol;

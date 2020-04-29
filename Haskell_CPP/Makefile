@@ -18,17 +18,11 @@ lexer:
 parser:
 	$(ANTLR) -Dlanguage=Cpp src/${PARSER}".g4" -no-listener
 
-# compile:
-# 	g++ src/*.cpp -g $(INCLUDE) $(LINK) $(LIBPATH) -std=c++17 -o parsertestexe
-
 compile:
 	g++ src/*.cpp -g $(INCLUDE) $(LINK) $(LIBPATH) -std=c++17 -o parsertestexe
 
 grun:
 	$(GRUN) $(GRAMMAR) $(ROOT) -gui $(TEST) 
-
-test: 
-	./test/run.sh
 
 clean:
 	rm -rf src/HaskellLexer.cpp src/HaskellLexer.h src/HaskellParser.cpp src/HaskellParser.h src/*.tokens src/*.interp result/

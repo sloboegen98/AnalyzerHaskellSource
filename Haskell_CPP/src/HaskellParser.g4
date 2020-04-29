@@ -645,7 +645,7 @@ fdecl
 
 callconv
     :
-    'ccall' | 'stdcall' | 'cplusplus' | 'jvm' | 'dotnet'
+    'ccall' | 'stdcall' | 'cplusplus' | 'javascript'
     ;
 
 impent : pstring;

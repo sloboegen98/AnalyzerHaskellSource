@@ -252,11 +252,6 @@ ops
     op (',' op)*
     ;
 
-// vars
-//     :
-//     var (',' var)*
-//     ;
-
 fixity
     :
     'infix' | 'infixl' | 'infixr'

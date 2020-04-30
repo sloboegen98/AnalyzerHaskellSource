@@ -6,6 +6,7 @@
 #include "antlr4-runtime.h"
 #include "HaskellLexer.h"
 #include "HaskellParser.h"
+#include "HaskellVisitor.h"
 
 class MyParserErrorListener: public antlr4::BaseErrorListener {
   virtual void syntaxError(
@@ -22,6 +23,7 @@ class MyParserErrorListener: public antlr4::BaseErrorListener {
 };
 
 
+// #define VISITOR
 
 int main(int argc, char *argv[]) {
     std::ifstream str;
@@ -29,26 +31,23 @@ int main(int argc, char *argv[]) {
     antlr4::ANTLRInputStream input(str);
     HaskellLexer lexer(&input);
     antlr4::CommonTokenStream tokens(&lexer);
-//
-    MyParserErrorListener errorListner;
-
     tokens.fill();
-    // Only if you want to list the tokens
-    for (auto token : tokens.getTokens()) {
-     std::cout << token->toString() << std::endl;
-    }
-    
     HaskellParser parser(&tokens);
-    // parser.removeErrorListeners();
-    // parser.addErrorListener(&errorListner);
-    // try {
-        antlr4::tree::ParseTree* tree = parser.module();
-        std::cout << tree->toStringTree(&parser) << std::endl;
-        // DotPrinter::print(tree, "tree.dot", "");
 
-    //     return 0;
-    // } catch (std::invalid_argument &e) {
-    //     std::cout << e.what() << std::endl;
-    //     return 10;
-    // }
+    antlr4::tree::ParseTree* tree = parser.module();
+
+
+#ifdef VISITOR
+    HaskellVisitor* visitor = new HaskellVisitor(); 
+    visitor->visit(tree);
+    auto tns = visitor->get_type_notations();
+
+    for (auto &t : tns) {
+        std::cout << t << std::endl;
+    }
+#endif
+    
+    std::cout << tree->toStringTree(&parser) << std::endl;
+
+    return 0;
 }

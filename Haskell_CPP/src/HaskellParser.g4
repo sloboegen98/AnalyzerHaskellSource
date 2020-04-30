@@ -303,6 +303,13 @@ atype
     | ('[' ktype ']')
     | ('(' ktype ')')
     | ('[' ktype (',' ktype)* ']')
+    | quasiquote
+    | splice_untyped
+    | ('\'' qcon_nowiredlist)
+    | ('\'' '(' ktype (',' ktype)*)
+    | ('\'' '[' ']')
+    | ('\'' '[' ktype (',' ktype)* ']')
+    | ('\'' var)
     | integer
     | STRING
     | '_'
@@ -911,6 +918,20 @@ qtyconsym:qconsym | qvarsym | tyconsym;
 tyconsym: consym | varsym | ':' | '-' | '.';
 tyvarop: '`' tyvarid '`';
 
+qcon_nowiredlist
+    :
+    qcon
+    | sysdcon_nolist
+    ;
+
+sysdcon_nolist
+    :
+    ('(' ')')
+    | ('(' ','+ ')')
+    // | ('(#' '#)')
+    // | ('(#' ','+ '#)')
+    ;
+
 open : VOCURLY | OCURLY;
 close : VCCURLY | CCURLY;
 semi : ';' | SEMI;
@@ -926,7 +947,21 @@ special : '(' | ')' | ',' | ';' | '[' | ']' | '`' | '{' | '}';
 
 tyvarid : varid;
 
-varid : (VARID | 'as' | 'hiding' | 'forall') ({MagicHash}? '#'*);
+special_id
+    : 'as'
+    | 'qualified'
+    | 'hiding'
+    | 'export'
+    | 'stdcall'
+    | 'ccall'
+    | 'capi'
+    | 'javascript'
+    | 'stock'
+    | 'anyclass'
+    | 'via'
+    ;
+
+varid : (VARID | special_id) ({MagicHash}? '#'*);
 conid : CONID ({MagicHash}? '#'*);
 
 symbol: ascSymbol;

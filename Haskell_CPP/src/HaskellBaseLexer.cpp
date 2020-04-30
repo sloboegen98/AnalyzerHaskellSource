@@ -199,7 +199,6 @@ std::unique_ptr <antlr4::Token> HaskellBaseLexer::nextToken() {
         prev_was_endl = true;
     }
 
-
     if (pendingDent && prev_was_endl
         && !ignore_indent
         && indentCount <= getSavedIndent()
@@ -228,8 +227,6 @@ std::unique_ptr <antlr4::Token> HaskellBaseLexer::nextToken() {
                 indentStack.pop();
                 nested_level--;
             }
-
-            // std::cout << next->toString() << ' ' << indentCount << ' ' << getSavedIndent() << std::endl;
 
             tokenQueue.push_back(createToken(HaskellLexer::SEMI, "SEMI", st_ind));
             tokenQueue.push_back(createToken(HaskellLexer::VCCURLY, "VCCURLY", st_ind));

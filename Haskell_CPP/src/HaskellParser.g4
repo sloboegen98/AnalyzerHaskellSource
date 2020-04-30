@@ -17,8 +17,6 @@ options { tokenVocab=HaskellLexer; }
     bool RecursiveDo = true;
 }
 
-// parser rules
-
 module :  semi* pragmas? semi* (module_content | body) EOF;
 
 module_content
@@ -787,7 +785,7 @@ qual
 
 alts
     :
-    (open (alt semi+)+ close)
+    (open (alt semi*)+ close)
     | ({EmptyCase}? open close)
     ;
 

@@ -89,7 +89,7 @@ himport
     :
     var
     | ( tycon ( ('(' '..' ')') | ('(' (cname (',' cname)*)? ')') )? )
-    | ( tycls ( ('(' '..' ')') | ('(' (var (',' var)*)? ')') )? )
+    | ( tycls ( ('(' '..' ')') | ('(' sig_vars? ')') )? )
     ;
 
 cname
@@ -192,7 +192,7 @@ specs
 
 spec
     :
-    vars '::' type
+    sig_vars '::' type
     ;
 
 cdecls
@@ -219,7 +219,7 @@ idecl
 gendecl
     :
     // vars '::' (typecontext '=>')? type
-    vars '::' ctype
+    sig_vars '::' ctype
     | (fixity (DECIMAL)? ops)
     ;
 
@@ -252,10 +252,10 @@ ops
     op (',' op)*
     ;
 
-vars
-    :
-    var (',' var)*
-    ;
+// vars
+//     :
+//     var (',' var)*
+//     ;
 
 fixity
     :
@@ -297,11 +297,14 @@ atype
     gtycon
     | tyvar
     | '*'
+    | ('{' fielddecls '}')
     | ('(' ')')
     | ('(' ktype (',' ktype)* ')')
     | ('[' ktype ']')
     | ('(' ktype ')')
     | ('[' ktype (',' ktype)* ']')
+    | integer
+    | STRING
     | '_'
     ;
 
@@ -313,6 +316,11 @@ sigtype
 sigtypedoc
     :
     ctypedoc
+    ;
+
+sig_vars
+    :
+    var (',' var)*
     ;
 
 forall_vis_flag
@@ -606,9 +614,19 @@ newconstr
     | (con '{' var '::' type '}')
     ;
 
+// fielddecl
+//     :
+//     vars '::' (type | ('!' atype))
+//     ;
+
+fielddecls
+    :
+    fielddecl (',' fielddecl)*
+    ;
+
 fielddecl
     :
-    vars '::' (type | ('!' atype))
+    sig_vars '::' ctype
     ;
 
 deriving

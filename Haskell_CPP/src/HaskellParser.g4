@@ -411,12 +411,12 @@ kind
 
 gadt_constrlist
     :
-    'where' open gadt_constrs? close
+    'where' open gadt_constrs? semi* close
     ;
 
 gadt_constrs
     :
-    gadt_constr_with_doc (semi gadt_constr_with_doc)* semi?
+    gadt_constr_with_doc (semi gadt_constr_with_doc)*
     ;
 
 gadt_constr_with_doc

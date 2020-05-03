@@ -5,6 +5,7 @@
 *Parser*
 *Lexer*
 !HaskellBaseLexer.cpp
+!HaskellBaseLexer.h
 !*.g4
 
 # vscode

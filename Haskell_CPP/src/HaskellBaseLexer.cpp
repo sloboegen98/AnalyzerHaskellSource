@@ -268,7 +268,7 @@ std::unique_ptr <antlr4::Token> HaskellBaseLexer::nextToken() {
         prev_was_endl = true;
     }
 
-    if (next->getType() == HaskellLexer::WHERE
+    if (   next->getType() == HaskellLexer::WHERE
         || next->getType() == HaskellLexer::LET
         || next->getType() == HaskellLexer::DO
         || next->getType() == HaskellLexer::MDO

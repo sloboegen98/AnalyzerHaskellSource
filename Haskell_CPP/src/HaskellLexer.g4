@@ -73,7 +73,7 @@ OVERLAPPABLE: 'OVERLAPPABLE';
 OVERLAPS    : 'OVERLAPS'    ;
 INCOHERENT  : 'INCOHERENT'  ;
 
-LCASE       : '\\' 'case'   ;
+LCASE       : '\\' (NEWLINE | WS)* 'case'   ;
 
 DoubleArrow        : '=>' ;
 DoubleColon        : '::' ;

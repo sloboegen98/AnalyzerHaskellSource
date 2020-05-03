@@ -131,9 +131,7 @@ std::unique_ptr <antlr4::Token> HaskellBaseLexer::nextToken() {
             prev_was_keyword = false;
             nested_level = 0;
             module_start_indent = false;
-            
             prev_was_endl = false;
-
             start_indent = next->getCharPositionInLine();
             tokenQueue.push_back(createToken(HaskellLexer::VOCURLY, "VOCURLY", st_ind));
             tokenQueue.push_back(createToken(next->getType(), next->getText(), st_ind));
@@ -176,13 +174,13 @@ std::unique_ptr <antlr4::Token> HaskellBaseLexer::nextToken() {
 
     if (ignore_indent
         && (next->getType() == HaskellLexer::WHERE
-        || next->getType() == HaskellLexer::DO
-        || next->getType() == HaskellLexer::MDO
-        || next->getType() == HaskellLexer::LET
-        || next->getType() == HaskellLexer::OF
-        || next->getType() == HaskellLexer::LCASE
-        || next->getType() == HaskellLexer::REC
-        || next->getType() == HaskellLexer::CCURLY)
+        ||  next->getType() == HaskellLexer::DO
+        ||  next->getType() == HaskellLexer::MDO
+        ||  next->getType() == HaskellLexer::LET
+        ||  next->getType() == HaskellLexer::OF
+        ||  next->getType() == HaskellLexer::LCASE
+        ||  next->getType() == HaskellLexer::REC
+        ||  next->getType() == HaskellLexer::CCURLY)
         ) {
         ignore_indent = false;
     }

@@ -127,8 +127,8 @@ STRING : '"' (' ' | DECIMAL | SMALL | LARGE
               | ASCSYMBOL | DIGIT | ',' | ';' | '(' | ')'
               | '[' | ']' | '`' | '\'')* '"';
 
-VARID : SMALL (SMALL | LARGE | DIGIT | '\'' )*;
-CONID : LARGE (SMALL | LARGE | DIGIT | '\'' )*;
+VARID : SMALL (SMALL | LARGE | DIGIT | '\'' )* '#'*;
+CONID : LARGE (SMALL | LARGE | DIGIT | '\'' )* '#'*;
 
 OpenPragmaBracket : '{-#';
 ClosePragmaBracket: '#-}';
@@ -138,7 +138,6 @@ ClosePragmaBracket: '#-}';
 // https://medium.com/swiftify/parsing-preprocessor-directives-in-objective-c-714a3dde570
 // directives are skip now
 MultiLineMacro : '#' (~ [\n]*? '\\' '\r'? '\n')+ ~ [\n]+ -> skip;
-
 Directive : '#' ~ [\n]* -> skip;
 
 COMMENT  : '--' (~[\r\n])* -> skip;

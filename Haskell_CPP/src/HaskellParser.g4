@@ -616,11 +616,6 @@ newconstr
     | (con '{' var '::' type '}')
     ;
 
-// fielddecl
-//     :
-//     vars '::' (type | ('!' atype))
-//     ;
-
 fielddecls
     :
     fielddecl (',' fielddecl)*

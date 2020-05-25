@@ -249,7 +249,7 @@ ty_fam_inst_eqns
 
 ty_fam_inst_eqn
     :
-    'forall' tv_bndrs '.' type '=' ktype
+    'forall' tv_bndrs? '.' type '=' ktype
     | type '=' ktype
     ;
 
@@ -314,7 +314,7 @@ tycl_hdr
 
 tycl_hdr_inst
     :
-    ('forall' tv_bndrs '.' tycl_context '=>' type)
+    ('forall' tv_bndrs? '.' tycl_context '=>' type)
     | ('forall' tv_bndr '.' type) 
     | (tycl_context '=>' type)
     | type
@@ -578,7 +578,7 @@ ktypedoc
 // A ctype is a for-all type
 ctype
     :
-    'forall' tv_bndrs forall_vis_flag ctype
+    'forall' tv_bndrs? forall_vis_flag ctype
     | btype '=>' ctype
     | var '::' type // not sure about this rule
     | type
@@ -586,7 +586,7 @@ ctype
 
 ctypedoc
     :
-    'forall' tv_bndrs forall_vis_flag ctypedoc
+    'forall' tv_bndrs? forall_vis_flag ctypedoc
     | tycl_context '=>' ctypedoc
     | var '::' type
     | typedoc
@@ -650,26 +650,57 @@ tyapp
     | unpackedness
     ;
 
+// atype
+//     :
+//     gtycon
+//     | tyvar
+//     | '*'
+//     | ('{' fielddecls '}')
+//     | ('(' ')')
+//     | ('(' ktype (',' ktype)* ')')
+//     | ('[' ktype ']')
+//     | ('(' ktype ')')
+//     | ('[' ktype (',' ktype)* ']')
+//     | quasiquote
+//     | splice_untyped
+//     | ('\'' qcon_nowiredlist)
+//     | ('\'' '(' ktype (',' ktype)*)
+//     | ('\'' '[' ']')
+//     | ('\'' '[' ktype (',' ktype)* ']')
+//     | ('\'' var)
+//     | integer
+//     | STRING
+//     | '_'
+//     ;
+
 atype
     :
-    gtycon
+    ntgtycon
     | tyvar
     | '*'
-    | ('{' fielddecls '}')
+    | ('~' atype)
+    | ('!' atype)
+    | ('{' fielddecls? '}')
     | ('(' ')')
-    | ('(' ktype (',' ktype)* ')')
+    | ('(' ktype ',' comma_types ')')
+    | ('(#' '#)')
+    | ('(#' comma_types '#)')
+    | ('(#' bar_types2 '#)')
     | ('[' ktype ']')
     | ('(' ktype ')')
-    | ('[' ktype (',' ktype)* ']')
     | quasiquote
     | splice_untyped
     | ('\'' qcon_nowiredlist)
-    | ('\'' '(' ktype (',' ktype)*)
-    | ('\'' '[' ']')
-    | ('\'' '[' ktype (',' ktype)* ']')
+    | ('\'' '(' ktype ',' comma_types ')')
+    | ('\'' '[' comma_types? ']')
     | ('\'' var)
+    // Two or more [ty, ty, ty] must be a promoted list type, just as
+    // if you had written '[ty, ty, ty]
+    // (One means a list type, zero means the list type constructor,
+    // so you have to quote those.)
+    | ('[' ktype ',' comma_types ']')
     | integer
-    | STRING
+    | pstring
     | '_'
     ;
 
@@ -681,6 +712,16 @@ inst_type
 deriv_types
     :
     ktypedoc (',' ktypedoc)*
+    ;
+
+comma_types
+    : 
+    ktype (',' ktype)*
+    ;
+
+bar_types2
+    :
+    ktype '|' ktype ('|' ktype)*
     ;
 
 tv_bndrs
@@ -1356,13 +1397,29 @@ qconop : gconsym | ('`' qconid '`')	 ;
 // -------------------------------------------
 // Type constructors (CHECK!!!)
 
+// gtycon
+//     :
+//     qtycon
+//     | ( '(' ')' )
+//     | ( '[' ']' )
+//     | ( '(' '->' ')' )
+//     | ( '(' ',' '{' ',' '}' ')' )
+//     ;
+
 gtycon
     :
-    qtycon
-    | ( '(' ')' )
-    | ( '[' ']' )
-    | ( '(' '->' ')' )
-    | ( '(' ',' '{' ',' '}' ')' )
+    ntgtycon
+    | ('('  ')')
+    | ('(#' '#)')
+    ;
+
+ntgtycon
+    :
+    oqtycon
+    | ('(' commas ')')
+    | ('(#' commas '#)')
+    | ('(' '->' ')')
+    | ('[' ']')
     ;
 
 oqtycon

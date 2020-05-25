@@ -59,16 +59,21 @@ CAPI          : 'capi'             ;
 CPPCALL       : 'cplusplus'        ;
 JSCALL        : 'javascript'       ;
 REC           : 'rec'              ;
+GROUP         : 'group'            ;
+BY            : 'by'               ;
+USING         : 'using'            ;
 PATTERN       : 'pattern'          ;
 STOCK         : 'stock'            ;
 ANYCLASS      : 'anyclass'         ;
 VIA           : 'via'              ;
 
 LANGUAGE      : 'LANGUAGE'         ;
+OPTIONS_GHC   : 'OPTIONS_GHC'      ;
+OPTIONS       : 'OPTIONS'          ;
 INLINE        : 'INLINE'           ;
 NOINLINE      : 'NOINLINE'         ;
-SPECIALIZE    : 'SPECIALIZE'       ;
-SPECINLINE    : 'SPECIALIZE_INLINE';
+SPECIALISE    : 'SPECIALISE'       ;
+SPECINLINE    : 'SPECIALISE_INLINE';
 SOURCE        : 'SOURCE'           ;
 RULES         : 'RULES'            ;
 SCC           : 'SCC'              ;
@@ -88,6 +93,7 @@ COMPLETE      : 'COMPLETE'         ;
 
 LCASE       : '\\' (NEWLINE | WS)* 'case'   ;
 
+fragment SYMBOL : ASCSYMBOL | UNISYMBOL;
 DoubleArrow        : '=>'  ;
 DoubleColon        : '::'  ;
 Arrow              : '->'  ;
@@ -1428,7 +1434,6 @@ fragment UNISMALL
 ;
 
 
-fragment SYMBOL : ASCSYMBOL | UNISYMBOL;
 
 fragment ASCSYMBOL : '!' | '#' | '$' | '%' | '&' | '*' | '+'
         | '.' | '/' | '<' | '=' | '>' | '?' | '@'

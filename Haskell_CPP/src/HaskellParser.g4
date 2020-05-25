@@ -17,7 +17,7 @@ options { tokenVocab=HaskellLexer; }
     bool RecursiveDo = true;
 }
 
-module :  semi* pragmas? semi* (module_content | body) EOF;
+module :  OCURLY? semi* pragmas? semi* (module_content | body) CCURLY? EOF;
 
 module_content
     :
@@ -41,7 +41,24 @@ pragmas
 
 pragma
     :
-    '{-#' 'LANGUAGE'  extension (',' extension)* '#-}' SEMI?
+    language_pragma
+    | options_ghc
+    | simple_options
+    ;
+
+language_pragma
+    :  
+    '{-#' 'LANGUAGE'  extension (',' extension)* '#-}' semi?
+    ;
+
+options_ghc
+    :
+    '{-#' 'OPTIONS_GHC' ('-' (varid | conid))* '#-}' semi?
+    ;
+
+simple_options
+    :
+    '{-#' 'OPTIONS' ('-' (varid | conid))* '#-}' semi?
     ;
 
 extension
@@ -144,7 +161,7 @@ ty_decl
     // ordinary type synonyms
     ('type' type '=' ktypedoc)
     // type family declaration
-    | ('type' 'family' type opt_tyfam_kind_sig opt_injective_info? where_type_family?)
+    | ('type' 'family' type opt_tyfam_kind_sig? opt_injective_info? where_type_family?)
     // ordinary data type or newtype declaration
     | ('data' (typecontext '=>')? simpletype ('=' constrs)? derivings?)
     | ('newtype' (typecontext '=>')? simpletype '=' newconstr derivings?)
@@ -1081,9 +1098,9 @@ sigdecl
     | ('{-#' 'COMPLETE' con_list opt_tyconsig? '#-}')
     | ('{-#' 'INLINE' activation? qvar '#-}')
     | ('{-#' 'SCC' qvar pstring? '#-}')
-    | ('{-#' 'SPECIALIZE' activation? qvar '::' sigtypes1 '#-}')
-    | ('{-#' 'SPECIALIZE_INLINE' activation? qvar '::' sigtypes1 '#-}')
-    | ('{-#' 'SPECIALIZE' 'instance' inst_type '#-}')
+    | ('{-#' 'SPECIALISE' activation? qvar '::' sigtypes1 '#-}')
+    | ('{-#' 'SPECIALISE_INLINE' activation? qvar '::' sigtypes1 '#-}')
+    | ('{-#' 'SPECIALISE' 'instance' inst_type '#-}')
     | ('{-#' 'MINIMAL' '#-}' name_boolformula_opt? '#-}')
     |(semi+)
     ;
@@ -1197,6 +1214,7 @@ aexp2
     | '[p|' infixexp '|]'
     | '[d|' cvtopbody '|]'
     | quasiquote
+    | ('(|' aexp cmdargs? '|)')
     ;
 
 splice_exp
@@ -1213,6 +1231,16 @@ splice_untyped
 splice_typed
     :
     '$$' aexp
+    ;
+
+cmdargs
+    :
+    acmd+
+    ;
+
+acmd
+    :
+    aexp
     ;
 
 cvtopbody
@@ -1280,9 +1308,7 @@ lexps
 
 
 // -------------------------------------------
-
 // List Comprehensions
-// TODO
 
 flattenedpquals
     :
@@ -1296,11 +1322,26 @@ pquals
 
 squals
     :
-    // transformqual (',' transformqual)*
-    // | transformqual (',' qual)*
-    // | qual (',' transformqual)*
+    transformqual (',' transformqual)*
+    | transformqual (',' qual)*
+    | qual (',' transformqual)*
     | qual (',' qual)*
     ;
+
+transformqual
+    :
+    'then' exp
+    | 'then' exp 'by' exp
+    | 'then' 'group' 'using' exp
+    | 'then' 'group' 'by' exp 'using' exp
+    ;
+
+// Note that 'group' is a special_id, which means that you can enable
+// TransformListComp while still using Data.List.group. However, this
+// introduces a shift/reduce conflict. Happy chooses to resolve the conflict
+// in by choosing the "group by" variant, which is what we want.
+
+
 
 // -------------------------------------------
 // Guards (Different from GHC)

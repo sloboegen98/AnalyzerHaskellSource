@@ -46,7 +46,7 @@ int main(int argc, char *argv[]) {
     }
 #endif
     
-    std::cout << tree->toStringTree(&parser) << std::endl;
+    // std::cout << tree->toStringTree(&parser) << std::endl;
 
     return 0;
 }

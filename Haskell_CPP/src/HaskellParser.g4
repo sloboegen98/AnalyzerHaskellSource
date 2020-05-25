@@ -130,12 +130,14 @@ topdecl
     ;
 
 // Type classes
+// 
 cl_decl
     :
     'class' tycl_hdr fds? where_cls?
     ;
 
 // Type declarations (toplevel)
+// 
 ty_decl
     :
     // ordinary type synonyms
@@ -905,16 +907,6 @@ deriv_clause_types
 //   We can't tell whether to reduce var to qvar until after we've read the signatures.
 // -}
 
-// decl
-//     :
-//     '{-#' 'INLINE' qvar '#-}'
-//     | '{-#' 'NOINLINE' qvar '#-}'
-//     | '{-#' 'SPECIALIZE' specs '#-}'
-//     | gendecl
-//     | ((funlhs | pat) rhs)
-//     | semi+
-//     ;
-
 decl_no_th
     :
     sigdecl
@@ -1057,50 +1049,6 @@ aexp2
     | '[d|' cvtopbody '|]'
     | quasiquote
     ;
-
-
-// lexp
-//     :
-//     ('\\' apat+ '->' exp)
-//     | ('let' decllist 'in' exp)
-//     | ({LambdaCase}? LCASE alts)
-//     | ('if' exp semi? 'then' exp semi? 'else' exp)
-//     | ({MultiWayIf}? 'if' ifgdpats)
-//     | ('case' exp 'of' alts)
-//     | ('do' stmtlist)
-//     | ({RecursiveDo}? 'mdo' stmtlist)
-//     | fexp
-//     ;
-
-// fexp
-//     :
-//     aexp+
-//     ;
-
-// aexp
-//     :
-//     qvar
-//     | gcon
-//     | literal
-//     | ( '(' exp ')' )
-//     | ( '(' exp ',' exp (',' exp)* ')' )
-//     | ( '[' exp (',' exp)* ']' )
-//     | ( '[' exp (',' exp)? '..' exp? ']' )
-//     | ( '[' exp '|' qual (',' qual)* ']' )
-//     | ( '(' infixexp qop ')' )
-//     | ( '(' qop infixexp ')' )
-//     | ( qcon '{' fbinds? '}' )
-//     | ('{' fbind (',' fbind)* '}')+
-//     // Template Haskell
-//     | splice_untyped
-//     | splice_typed
-//     | '[|' exp '|]'
-//     | '[||' exp '||]'
-//     | '[t|' ktype '|]'
-//     | '[p|' infixexp '|]'
-//     | '[d|' cvtopbody '|]'
-//     | quasiquote
-//     ;
 
 splice_exp
     :
@@ -1562,24 +1510,6 @@ commas: ','+;
 bars : '|'+;
 
 // -------------------------------------------
-
-
-specs
-    :
-    spec (',' spec)*
-    ;
-
-spec
-    :
-    sig_vars '::' type
-    ;
-
-gendecl
-    :
-    // vars '::' (typecontext '=>')? type
-    sig_vars '::' ctype
-    | (fixity (DECIMAL)? ops)
-    ;
 
 typecontext
     :

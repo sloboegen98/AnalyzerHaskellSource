@@ -642,6 +642,7 @@ tyapps
 tyapp
     :
     atype
+    | ('@' atype)
     | qtyconop
     | tyvarop
     | ('\'' qconop)

@@ -1150,8 +1150,7 @@ fbind
     ;
 
 // -------------------------------------------
-
-
+// Implicit Parameter Bindings
 
 dbinds
     :
@@ -1163,7 +1162,172 @@ dbind
     varid '=' exp
     ;
 
+// -------------------------------------------
 
+// Warnings and deprecations
+// TODO
+
+// -------------------------------------------
+// Data constructors
+// There are two different productions here as lifted list constructors
+// are parsed differently.
+
+qcon   : qconid  | ( '(' gconsym ')');
+
+con    : conid   | ( '(' consym ')' );
+
+con_list 
+    : 
+    con (',' con)*
+    ;
+
+conop  : consym  | ('`' conid '`')	 ;
+
+qconop : gconsym | ('`' qconid '`')	 ;
+
+// -------------------------------------------
+// Type constructors (CHECK!!!)
+
+gtycon
+    :
+    qtycon
+    | ( '(' ')' )
+    | ( '[' ']' )
+    | ( '(' '->' ')' )
+    | ( '(' ',' '{' ',' '}' ')' )
+    ;
+
+oqtycon
+    :
+    qtycon
+    | ('(' qtyconsym ')')
+    ;
+
+// {- Note [Type constructors in export list]
+// ~~~~~~~~~~~~~~~~~~~~~
+// Mixing type constructors and data constructors in export lists introduces
+// ambiguity in grammar: e.g. (*) may be both a type constructor and a function.
+
+// -XExplicitNamespaces allows to disambiguate by explicitly prefixing type
+// constructors with 'type' keyword.
+
+// This ambiguity causes reduce/reduce conflicts in parser, which are always
+// resolved in favour of data constructors. To get rid of conflicts we demand
+// that ambiguous type constructors (those, which are formed by the same
+// productions as variable constructors) are always prefixed with 'type' keyword.
+// Unambiguous type constructors may occur both with or without 'type' keyword.
+
+// Note that in the parser we still parse data constructors as type
+// constructors. As such, they still end up in the type constructor namespace
+// until after renaming when we resolve the proper namespace for each exported
+// child.
+// -}
+
+qtyconop: qtyconsym | ('`' qtycon '`');
+
+qtycon : (modid '.')? tycon;
+
+tycon : conid;
+
+qtyconsym:qconsym | qvarsym | tyconsym;
+
+tyconsym: consym | varsym | ':' | '-' | '.';
+
+// -------------------------------------------
+// Operators
+
+ops    : op (',' op)*              ;
+
+op     : varop   | conop           ;
+
+varop  : varsym  | ('`' varid '`') ;
+
+qop    : qvarop  | qconop		   ;
+
+qvarop : qvarsym | ('`' qvarid '`');
+
+// -------------------------------------------
+// Type variables
+
+tyvar : varid;
+
+tyvarop: '`' tyvarid '`';
+
+// Expand this rule later
+// In GHC:
+// tyvarid : VARID | special_id | 'unsafe'
+//         | 'safe' | 'interruptible';
+
+tyvarid : varid;
+
+// -------------------------------------------
+// Variables
+
+var	   : varid   | ( '(' varsym ')' );
+
+qvar   : qvarid  | ( '(' qvarsym ')');
+
+// We've inlined qvarsym here so that the decision about
+// whether it's a qvar or a var can be postponed until
+// *after* we see the close paren
+qvarid : (modid '.')? varid;
+
+// Note that 'role' and 'family' get lexed separately regardless of
+// the use of extensions. However, because they are listed here,
+// this is OK and they can be used as normal varids.
+varid : (VARID | special_id) ({MagicHash}? '#'*);
+
+qvarsym: (modid '.')? varsym;
+
+varsym : ascSymbol+;
+
+// These special_ids are treated as keywords in various places,
+// but as ordinary ids elsewhere.   'special_id' collects all these
+// except 'unsafe', 'interruptible', 'forall', 'family', 'role', 'stock', and
+// 'anyclass', whose treatment differs depending on context
+special_id
+    : 'as'
+    | 'qualified'
+    | 'hiding'
+    | 'export'
+    | 'stdcall'
+    | 'ccall'
+    | 'capi'
+    | 'javascript'
+    | 'stock'
+    | 'anyclass'
+    | 'via'
+    ;
+
+// -------------------------------------------
+// Data constructors
+
+qconid : (modid '.')? conid;
+
+conid : CONID ({MagicHash}? '#'*);
+
+qconsym: (modid '.')? consym;
+
+consym : ':' ascSymbol*;
+
+// -------------------------------------------
+// Literals
+
+literal : integer | pfloat | pchar | pstring;
+
+// -------------------------------------------
+// Layout
+
+open : VOCURLY | OCURLY;
+close : VCCURLY | CCURLY;
+semi : ';' | SEMI;
+
+// -------------------------------------------
+// Miscellaneous (mostly renamings)
+
+modid : (conid '.')* conid;
+
+// -------------------------------------------
 
 
 specs
@@ -1194,23 +1358,10 @@ gendecl
     | (fixity (DECIMAL)? ops)
     ;
 
-ops
-    :
-    op (',' op)*
-    ;
 
 fixity
     :
     'infix' | 'infixl' | 'infixr'
-    ;
-
-gtycon
-    :
-    qtycon
-    | ( '(' ')' )
-    | ( '[' ']' )
-    | ( '(' '->' ')' )
-    | ( '(' ',' '{' ',' '}' ')' )
     ;
 
 typecontext
@@ -1261,16 +1412,6 @@ newconstr
     ;
 
 
-inst
-    :
-    gtycon
-    | ( '(' gtycon tyvar* ')' )
-    | ( '(' gtycon tycon* ')' ) // FlexibleInstances
-    | ( '(' tyvar ',' tyvar (',' tyvar)* ')')
-    | ( '[' tyvar ']')
-    | ( '(' tyvar '->' tyvar ')' )
-    ;
-
 funlhs
     :
     (var apat+)
@@ -1297,11 +1438,6 @@ gcon
     | qcon
     ;
 
-con_list
-    :
-    con (',' con)*
-    ;
-
 namelist
     :
     name_var (',' name_var)*
@@ -1312,22 +1448,10 @@ name_var
     var | con
     ;
 
-var	   : varid   | ( '(' varsym ')' );
-qvar   : qvarid  | ( '(' qvarsym ')');
-con    : conid   | ( '(' consym ')' );
-qcon   : qconid  | ( '(' gconsym ')');
-varop  : varsym  | ('`' varid '`')   ;
-qvarop : qvarsym | ('`' qvarid '`')	 ;
-conop  : consym  | ('`' conid '`')	 ;
-qconop : gconsym | ('`' qconid '`')	 ;
-op     : varop   | conop			 ;
-qop    : qvarop  | qconop			 ;
+
 gconsym: ':'  	 | qconsym			 ;
 
-qtyconop: qtyconsym | ('`' qtycon '`');
-qtyconsym:qconsym | qvarsym | tyconsym;
-tyconsym: consym | varsym | ':' | '-' | '.';
-tyvarop: '`' tyvarid '`';
+
 
 qcon_nowiredlist
     :
@@ -1343,63 +1467,21 @@ sysdcon_nolist
     // | ('(#' ','+ '#)')
     ;
 
-open : VOCURLY | OCURLY;
-close : VCCURLY | CCURLY;
-semi : ';' | SEMI;
-
-literal : integer | pfloat | pchar | pstring;
 special : '(' | ')' | ',' | ';' | '[' | ']' | '`' | '{' | '}';
 
 
-// Expand this rule later
-// In GHC:
-// tyvarid : VARID | special_id | 'unsafe'
-//         | 'safe' | 'interruptible';
 
-tyvarid : varid;
-
-special_id
-    : 'as'
-    | 'qualified'
-    | 'hiding'
-    | 'export'
-    | 'stdcall'
-    | 'ccall'
-    | 'capi'
-    | 'javascript'
-    | 'stock'
-    | 'anyclass'
-    | 'via'
-    ;
-
-varid : (VARID | special_id) ({MagicHash}? '#'*);
-conid : CONID ({MagicHash}? '#'*);
 
 symbol: ascSymbol;
 ascSymbol: '!' | '#' | '$' | '%' | '&' | '*' | '+'
         | '.' | '/' | '<' | '=' | '>' | '?' | '@'
         | '\\' | '^' | '|' | '-' | '~' | ':' ;
 
-varsym : ascSymbol+;
-consym : ':' ascSymbol*;
 
-tyvar : varid;
-tycon : conid;
 tycls : conid;
-modid : (conid '.')* conid;
 
-qvarid : (modid '.')? varid;
-qconid : (modid '.')? conid;
-qtycon : (modid '.')? tycon;
 qtycls : (modid '.')? tycls;
-qvarsym: (modid '.')? varsym;
-qconsym: (modid '.')? consym;
 
-oqtycon
-    :
-    qtycon
-    | ('(' qtyconsym ')')
-    ;
 
 integer
     :

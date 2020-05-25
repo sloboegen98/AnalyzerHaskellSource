@@ -369,6 +369,8 @@ tyapp
     atype
     | qtyconop
     | tyvarop
+    | ('\'' qconop)
+    | ('\'' varop)
     | unpackedness
     ;
 

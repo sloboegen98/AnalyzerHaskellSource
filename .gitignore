@@ -28,3 +28,16 @@ parsertestexe
 full_text*
 full_list*
 report*
+Analyzer/full_lts01.txt
+Analyzer/full_lts210.txt
+Analyzer/full_lts501.txt
+Analyzer/full_lts602.txt
+Analyzer/full_lts715.txt
+Analyzer/full_lts817.txt
+Analyzer/full_lts1003.txt
+Analyzer/full_lts1112.txt
+Analyzer/full_lts1301.txt
+Analyzer/full_lts1325.txt
+Analyzer/full_lts1420.txt
+Analyzer/full_lts1508.txt
+Haskell_CPP/tmp.hs

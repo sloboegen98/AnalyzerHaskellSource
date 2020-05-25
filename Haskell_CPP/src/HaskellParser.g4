@@ -115,12 +115,13 @@ topdecl
     // Check KindSignatures
     | standalone_kind_sig
     | inst_decl
-    | {StandaloneDeriving}? standalone_deriving
-    | ('default' '(' (type (',' type)*)? ')' )
+    | standalone_deriving
+    | ('default' '(' comma_types? ')' )
     | ('foreign' fdecl)
     | ('{-#' 'DEPRECATED' deprecations? '#-}')
     | ('{-#' 'WARNING' warnings? '#-}')
     | ('{-#' 'RULES' rules? '#-}')
+    | annotation
     | decl_no_th
     // -- Template Haskell Extension
     //  The $(..) form is one possible form of infixexp
@@ -130,14 +131,14 @@ topdecl
     ;
 
 // Type classes
-// 
+//
 cl_decl
     :
     'class' tycl_hdr fds? where_cls?
     ;
 
 // Type declarations (toplevel)
-// 
+//
 ty_decl
     :
     // ordinary type synonyms
@@ -203,7 +204,7 @@ deriv_strategy_via
 
 deriv_standalone_strategy
     :
-    'stock'
+      'stock'
     | 'anyclass'
     | 'newtype'
     | deriv_strategy_via
@@ -269,7 +270,7 @@ at_decl_cls
     ;
 
 // Associated type instances
-// 
+//
 at_decl_inst
     :
     // type instance declarations, with optional 'instance' keyword
@@ -315,7 +316,7 @@ tycl_hdr
 tycl_hdr_inst
     :
     ('forall' tv_bndrs? '.' tycl_context '=>' type)
-    | ('forall' tv_bndrs? '.' type) 
+    | ('forall' tv_bndrs? '.' type)
     | (tycl_context '=>' type)
     | type
     ;
@@ -335,14 +336,58 @@ standalone_deriving
     ;
 
 // -------------------------------------------
-
 // Role annotations
-// TODO
+
+role_annot
+    :
+    'type' 'role' oqtycon roles?
+    ;
+
+roles
+    :
+    role+
+    ;
+
+role
+    :
+    varid | '_'
+    ;
+
 
 // -------------------------------------------
-
 // Pattern synonyms
-// TODO
+pattern_synonym_decl
+    :
+    ('pattern' pattern_synonym_lhs '=' pat)
+    | ('pattern' pattern_synonym_lhs '<-' pat where_decls?)
+    ;
+
+pattern_synonym_lhs
+    :
+    (con vars?)
+    | (varid conop varid)
+    | (con '{' cvars '}')
+    ;
+
+vars
+    :
+    varid+
+    ;
+
+cvars
+    :
+    var (',' var)*
+    ;
+
+where_decls
+    :
+    'where' open decls? close
+    ;
+
+pattern_synonym_sig
+    :
+    'pattern' con_list '::' sigtypedoc
+    ;
 
 // -------------------------------------------
 // Nested declaration
@@ -353,12 +398,12 @@ decl_cls
     :
     at_decl_cls
     | decl
-    // | 'default' infixexp '::' sigtypedoc
+    | 'default' infixexp '::' sigtypedoc
     ;
 
 decls_cls
     :
-    (decl_cls semi+)* decl_cls semi*
+    decl_cls (semi+ decl_cls)* semi*
     ;
 
 decllist_cls
@@ -367,7 +412,7 @@ decllist_cls
     ;
 
 // Class body
-// 
+//
 where_cls
     :
     'where' decllist_cls
@@ -392,17 +437,17 @@ decllist_inst
     ;
 
 // Instance body
-// 
+//
 where_inst
     :
     'where' decllist_inst
     ;
 
 // Declarations in binding groups other than classes and instances
-// 
+//
 decls
     :
-    (decl semi+)* decl semi*
+    decl (semi+ decl)* semi*
     ;
 
 decllist
@@ -411,7 +456,7 @@ decllist
     ;
 
 // Binding groups other than those of class and instance declarations
-// 
+//
 binds
     :
     decllist
@@ -500,9 +545,14 @@ stringlist
     ;
 
 // -------------------------------------------
-
 // Annotations
-// TODO
+
+annotation
+    :
+      ('{-#' 'ANN' name_var aexp '#-}')
+    | ('{-#' 'ANN' tycon aexp '#-}')
+    | ('{-#' 'ANN' 'module' aexp '#-}')
+    ;
 
 // -------------------------------------------
 // Foreign import and export declarations
@@ -518,12 +568,12 @@ callconv
     'ccall' | 'stdcall' | 'cplusplus' | 'javascript'
     ;
 
-safety : 'unsafe' | 'safe' | 'interruptible'; 
+safety : 'unsafe' | 'safe' | 'interruptible';
 
 fspec
     :
     pstring? var '::' sigtypedoc
-    ; 
+    ;
 
 // -------------------------------------------
 // Type signatures
@@ -545,6 +595,11 @@ sigtypedoc
 sig_vars
     :
     var (',' var)*
+    ;
+
+sigtypes1
+    :
+    sigtype (',' sigtype)*
     ;
 
 // -------------------------------------------
@@ -584,6 +639,18 @@ ctype
     | type
     ;
 
+// -- Note [ctype and ctypedoc]
+// -- ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+// -- It would have been nice to simplify the grammar by unifying `ctype` and
+// -- ctypedoc` into one production, allowing comments on types everywhere (and
+// -- rejecting them after parsing, where necessary).  This is however not possible
+// -- since it leads to ambiguity. The reason is the support for comments on record
+// -- fields:
+// --         data R = R { field :: Int -- ^ comment on the field }
+// -- If we allow comments on types here, it's not clear if the comment applies
+// -- to 'field' or to 'Int'. So we must use `ctype` to describe the type.
+
+
 ctypedoc
     :
     'forall' tv_bndrs? forall_vis_flag ctypedoc
@@ -617,6 +684,28 @@ tycl_context
 // is connected to the first type too.
 // -}
 
+constr_context
+    :
+    constr_btype
+    ;
+
+// {- Note [GADT decl discards annotations]
+// ~~~~~~~~~~~~~~~~~~~~~
+// The type production for
+
+//     btype `->`         ctypedoc
+//     btype docprev `->` ctypedoc
+
+// add the AnnRarrow annotation twice, in different places.
+
+// This is because if the type is processed as usual, it belongs on the annotations
+// for the type as a whole.
+
+// But if the type is passed to mkGadtDecl, it discards the top level SrcSpan, and
+// the top-level annotation will be disconnected. Hence for this specific case it
+// is connected to the first type too.
+// -}
+
 type
     :
     btype
@@ -627,6 +716,21 @@ typedoc
     :
     btype
     | btype '->' ctypedoc
+    ;
+
+constr_btype
+    :
+    constr_tyapps
+    ;
+
+constr_tyapps
+    :
+    constr_tyapp+
+    ;
+
+constr_tyapp
+    :
+    tyapp
     ;
 
 btype
@@ -692,7 +796,7 @@ deriv_types
     ;
 
 comma_types
-    : 
+    :
     ktype (',' ktype)*
     ;
 
@@ -937,12 +1041,12 @@ decl_no_th
     :
     sigdecl
     | (infixexp opt_sig? rhs)
-    // | pattern_synonym_decl
+    | pattern_synonym_decl
     // | docdecl
     | semi+
     ;
 
-decl 
+decl
     :
     decl_no_th
 
@@ -969,12 +1073,25 @@ gdrh
     ;
 
 sigdecl
-    : 
+    :
     (infixexp '::' sigtypedoc)
     | (var ',' sig_vars '::' sigtypedoc)
     | (fixity integer? ops)
-    // | (pattern_synonym_sig)
-    // |(semi+)
+    | (pattern_synonym_sig)
+    | ('{-#' 'COMPLETE' con_list opt_tyconsig? '#-}')
+    | ('{-#' 'INLINE' activation? qvar '#-}')
+    | ('{-#' 'SCC' qvar pstring? '#-}')
+    | ('{-#' 'SPECIALIZE' activation? qvar '::' sigtypes1 '#-}')
+    | ('{-#' 'SPECIALIZE_INLINE' activation? qvar '::' sigtypes1 '#-}')
+    | ('{-#' 'SPECIALIZE' 'instance' inst_type '#-}')
+    | ('{-#' 'MINIMAL' '#-}' name_boolformula_opt? '#-}')
+    |(semi+)
+    ;
+
+activation
+    :
+    ('[' integer ']')
+    | ('[' rule_activation_marker integer ']')
     ;
 
 // -------------------------------------------
@@ -999,15 +1116,12 @@ quasiquote
 exp
     :
     (infixexp '::' sigtype)
+    | (infixexp '-<' exp)
+    | (infixexp '>-' exp)
+    | (infixexp '-<<' exp)
+    | (infixexp '>>-' exp)
     | infixexp
     ;
-
-// infixexp
-//     :
-//     (lexp qop infixexp)
-//     | ('-' infixexp)
-//     | lexp
-//     ;
 
 infixexp
     :
@@ -1315,7 +1429,7 @@ fbinds
 // 1) RHS is a 'texp', allowing view patterns (#6038)
 // and, incidentally, sections.  Eg
 // f (R { x = show -> s }) = ...
-// 
+//
 // 2) In the punning case, use a place-holder
 // The renamer fills in the final value
 fbind
@@ -1340,7 +1454,27 @@ dbind
 // -------------------------------------------
 
 // Warnings and deprecations
-// TODO
+
+name_boolformula_opt
+    :
+    name_boolformula_and ('|' name_boolformula_and)*
+    ;
+
+name_boolformula_and
+    :
+    name_boolformula_and_list
+    ;
+
+name_boolformula_and_list
+    :
+    name_boolformula_atom (',' name_boolformula_atom)*
+    ;
+
+name_boolformula_atom
+    :
+    ('(' name_boolformula_opt ')')
+    | name_var
+    ;
 
 namelist
     :
@@ -1361,7 +1495,7 @@ qcon_nowiredlist : gen_qcon | sysdcon_nolist;
 
 qcon  : gen_qcon | sysdcon;
 
-gen_qcon : qconid | ( '(' qconsym ')' ); 
+gen_qcon : qconid | ( '(' qconsym ')' );
 
 con    : conid   | ( '(' consym ')' ) | sysdcon;
 
@@ -1387,16 +1521,7 @@ qconop : gconsym | ('`' qconid '`')	 ;
 
 
 // -------------------------------------------
-// Type constructors (CHECK!!!)
-
-// gtycon
-//     :
-//     qtycon
-//     | ( '(' ')' )
-//     | ( '[' ']' )
-//     | ( '(' '->' ')' )
-//     | ( '(' ',' '{' ',' '}' ')' )
-//     ;
+// Type constructors (Be careful!!!)
 
 gtycon
     :
@@ -1612,13 +1737,7 @@ gcon
     | qcon
     ;
 
-
-
 gconsym: ':'  	 | qconsym			 ;
-
-
-
-
 
 special : '(' | ')' | ',' | ';' | '[' | ']' | '`' | '{' | '}';
 
@@ -1631,7 +1750,6 @@ ascSymbol: '!' | '#' | '$' | '%' | '&' | '*' | '+'
 tycls : conid;
 
 qtycls : (modid '.')? tycls;
-
 
 integer
     :

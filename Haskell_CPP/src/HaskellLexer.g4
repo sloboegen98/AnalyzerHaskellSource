@@ -18,65 +18,72 @@ WS : [\u0020\u00a0\u1680\u2000\u200a\u202f\u205f\u3000]+ {
     this->processWSToken();
 } ;
 
-AS       : 'as'       ;
-CASE     : 'case'     ;
-CLASS    : 'class'    ;
-DATA     : 'data'     ;
-DEFAULT  : 'default'  ;
-DERIVING : 'deriving' ;
-DO       : 'do'       ;
-ELSE     : 'else'     ;
-HIDING   : 'hiding'   ;
-IF       : 'if'       ;
-IMPORT   : 'import'   ;
-IN       : 'in'       ;
-INFIX    : 'infix'    ;
-INFIXL   : 'infixl'   ;
-INFIXR   : 'infixr'   ;
-INSTANCE : 'instance' ;
-LET      : 'let'      ;
-MODULE   : 'module'   ;
-NEWTYPE  : 'newtype'  ;
-OF       : 'of'       ;
-QUALIFIED: 'qualified';
-THEN     : 'then'     ;
-TYPE     : 'type'     ;
-WHERE    : 'where'    ;
-WILDCARD : '_'        ;
+AS            : 'as'               ;
+CASE          : 'case'             ;
+CLASS         : 'class'            ;
+DATA          : 'data'             ;
+DEFAULT       : 'default'          ;
+DERIVING      : 'deriving'         ;
+DO            : 'do'               ;
+ELSE          : 'else'             ;
+HIDING        : 'hiding'           ;
+IF            : 'if'               ;
+IMPORT        : 'import'           ;
+IN            : 'in'               ;
+INFIX         : 'infix'            ;
+INFIXL        : 'infixl'           ;
+INFIXR        : 'infixr'           ;
+INSTANCE      : 'instance'         ;
+LET           : 'let'              ;
+MODULE        : 'module'           ;
+NEWTYPE       : 'newtype'          ;
+OF            : 'of'               ;
+QUALIFIED     : 'qualified'        ;
+THEN          : 'then'             ;
+TYPE          : 'type'             ;
+WHERE         : 'where'            ;
+WILDCARD      : '_'                ;
 
-FORALL   : 'forall'    ;
-FOREIGN  : 'foreign'   ;
-EXPORT   : 'export'    ;
-SAFE     : 'safe'      ;
-INTERRUPTIBLE : 'interruptible';
-UNSAFE   : 'unsafe'    ;
-MDO      : 'mdo'       ;
-FAMILY   : 'family'    ;
-STDCALL  : 'stdcall'   ;
-CCALL    : 'ccall'     ;
-CAPI     : 'capi'      ;
-CPPCALL  : 'cplusplus' ;
-JSCALL   : 'javascript';
-REC      : 'rec'       ;
-STOCK    : 'stock'     ;
-ANYCLASS : 'anyclass'  ;
-VIA      : 'via'       ;
+FORALL        : 'forall'           ;
+FOREIGN       : 'foreign'          ;
+EXPORT        : 'export'           ;
+SAFE          : 'safe'             ;
+INTERRUPTIBLE : 'interruptible'    ;
+UNSAFE        : 'unsafe'           ;
+MDO           : 'mdo'              ;
+FAMILY        : 'family'           ;
+ROLE          : 'role'             ;
+STDCALL       : 'stdcall'          ;
+CCALL         : 'ccall'            ;
+CAPI          : 'capi'             ;
+CPPCALL       : 'cplusplus'        ;
+JSCALL        : 'javascript'       ;
+REC           : 'rec'              ;
+PATTERN       : 'pattern'          ;
+STOCK         : 'stock'            ;
+ANYCLASS      : 'anyclass'         ;
+VIA           : 'via'              ;
 
-LANGUAGE  : 'LANGUAGE'      ;
-
-INLINE      : 'INLINE'      ;
-NOINLINE    : 'NOINLINE'    ;
-SPECIALIZE  : 'SPECIALIZE'  ;
-RULES       : 'RULES'       ;
-DEPRECATED  : 'DEPRECATED'  ;
-WARNING     : 'WARNING'     ;
-UNPACK      : 'UNPACK'      ;
-NOUNPACK    : 'NOUNPACK'    ;
-CTYPE       : 'CTYPE'       ;
-OVERLAPPING : 'OVERLAPPING' ;
-OVERLAPPABLE: 'OVERLAPPABLE';
-OVERLAPS    : 'OVERLAPS'    ;
-INCOHERENT  : 'INCOHERENT'  ;
+LANGUAGE      : 'LANGUAGE'         ;
+INLINE        : 'INLINE'           ;
+NOINLINE      : 'NOINLINE'         ;
+SPECIALIZE    : 'SPECIALIZE'       ;
+SPECINLINE    : 'SPECIALIZE_INLINE';
+SOURCE        : 'SOURCE'           ;
+RULES         : 'RULES'            ;
+SCC           : 'SCC'              ;
+DEPRECATED    : 'DEPRECATED'       ;
+WARNING       : 'WARNING'          ;
+UNPACK        : 'UNPACK'           ;
+NOUNPACK      : 'NOUNPACK'         ;
+ANN           : 'ANN'              ;
+MINIMAL       : 'MINIMAL'          ;
+CTYPE         : 'CTYPE'            ;
+OVERLAPPING   : 'OVERLAPPING'      ;
+OVERLAPPABLE  : 'OVERLAPPABLE'     ;
+OVERLAPS      : 'OVERLAPS'         ;
+INCOHERENT    : 'INCOHERENT'       ;
+COMPLETE      : 'COMPLETE'         ;
 
 
 LCASE       : '\\' (NEWLINE | WS)* 'case'   ;
@@ -134,11 +141,11 @@ CloseSquareBracket : ']'   ;
 
 
 CHAR : '\'' (' ' | DECIMAL | SMALL | LARGE
-              | ASCSYMBOL | DIGIT | ',' | ';' | '(' | ')'
+              | SYMBOL | DIGIT | ',' | ';' | '(' | ')'
               | '[' | ']' | '`' | '"') '\'';
 
 STRING : '"' (' ' | DECIMAL | SMALL | LARGE
-              | ASCSYMBOL | DIGIT | ',' | ';' | '(' | ')'
+              | SYMBOL | DIGIT | ',' | ';' | '(' | ')'
               | '[' | ']' | '`' | '\'')* '"';
 
 VARID : SMALL (SMALL | LARGE | DIGIT | '\'' )* '#'*;
@@ -1420,14 +1427,17 @@ fragment UNISMALL
     | '\uff41'..'\uff5a'       // Halfwidth_and_Fullwidth_Forms
 ;
 
-ASCSYMBOL : '!' | '#' | '$' | '%' | '&' | '*' | '+'
+
+fragment SYMBOL : ASCSYMBOL | UNISYMBOL;
+
+fragment ASCSYMBOL : '!' | '#' | '$' | '%' | '&' | '*' | '+'
         | '.' | '/' | '<' | '=' | '>' | '?' | '@'
         | '\\' | '^' | '|' | '-' | '~' | ':' ;
 
-UNISYMBOL
+fragment UNISYMBOL
     :
     CLASSIFY_Sc | CLASSIFY_Sk | CLASSIFY_Sm | CLASSIFY_So
-;
+    ;
 
 fragment CLASSIFY_Sc:
       '\u0024'                 // Basic_Latin

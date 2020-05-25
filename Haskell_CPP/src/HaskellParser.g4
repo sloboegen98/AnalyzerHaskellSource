@@ -943,8 +943,8 @@ lexp
     | ('if' exp semi? 'then' exp semi? 'else' exp)
     | ({MultiWayIf}? 'if' ifgdpats)
     | ('case' exp 'of' alts)
-    | ('do' stmts)
-    | ({RecursiveDo}? 'mdo' stmts)
+    | ('do' stmtlist)
+    | ({RecursiveDo}? 'mdo' stmtlist)
     | fexp
     ;
 
@@ -1068,6 +1068,66 @@ gdpat
     :
     '|' guards '->' exp
     ;
+
+pat
+    :
+    (lpat qconop pat)
+    | lpat
+    ;
+
+lpat
+    :
+    apat
+    | ('-' (integer | pfloat))
+    | (gcon apat+)
+    ;
+
+apat
+    :
+    (var ('@' apat)?)
+    | gcon
+    | (qcon '{' (fpat (',' fpat)*)? '}')
+    | literal
+    | '_'
+    | ('(' pat ')')
+    | ('(' pat ',' pat (',' pat)* ')')
+    | ('[' pat (',' pat)* ']')
+    | ('~'apat)
+    ;
+
+fpat
+    :
+    qvar '=' pat
+    ;
+
+// -------------------------------------------
+// Statement sequences
+
+stmtlist
+    :
+    open stmts? close
+    ;
+
+stmts
+    :
+    stmt (semi+ stmt)* semi*
+    ;
+
+stmt
+    : qual
+    | ({RecursiveDo}? 'rec' stmtlist)
+    | semi+
+    ;
+
+qual
+    :
+    (pat '<-' exp)
+    | ('let' decllist)
+    | exp
+    ;
+
+// -------------------------------------------
+// Record Field Update/Construction
 
 
 
@@ -1194,25 +1254,6 @@ th_qquasiquote
     '[' qvarid '|'
     ;
 
-qual
-    :
-    (pat '<-' exp)
-    | ('let' decllist)
-    | exp
-    ;
-
-stmts
-    :
-    open stmt* close
-    ;
-
-stmt
-    :
-    (qual)
-    | ({RecursiveDo}? 'rec' stmts)
-    | semi+
-    ;
-
 fbind
     :
     qvar '=' exp
@@ -1226,37 +1267,6 @@ dbinds
 dbind
     :
     varid '=' exp
-    ;
-
-pat
-    :
-    (lpat qconop pat)
-    | lpat
-    ;
-
-lpat
-    :
-    apat
-    | ('-' (integer | pfloat))
-    | (gcon apat+)
-    ;
-
-apat
-    :
-    (var ('@' apat)?)
-    | gcon
-    | (qcon '{' (fpat (',' fpat)*)? '}')
-    | literal
-    | '_'
-    | ('(' pat ')')
-    | ('(' pat ',' pat (',' pat)* ')')
-    | ('[' pat (',' pat)* ']')
-    | ('~'apat)
-    ;
-
-fpat
-    :
-    qvar '=' pat
     ;
 
 gcon

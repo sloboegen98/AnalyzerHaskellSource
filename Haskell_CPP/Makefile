@@ -16,7 +16,7 @@ lexer:
 	$(ANTLR) -Dlanguage=Cpp src/${LEXER}".g4" -no-listener
 
 parser:
-	$(ANTLR) -Dlanguage=Cpp src/${PARSER}".g4" -no-listener -visitor
+	$(ANTLR) -Dlanguage=Cpp src/${PARSER}".g4" -no-listener
 
 compile:
 	g++ src/*.cpp -g $(INCLUDE) $(LINK) $(LIBPATH) -std=c++17 -o parsertestexe

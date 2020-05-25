@@ -131,10 +131,10 @@ ty_decl
     // type family declaration
     | ('type' 'family' type opt_tyfam_kind_sig opt_injective_info? where_type_family?)
     // ordinary data type or newtype declaration
-    | ('data' (typecontext '=>')? simpletype ('=' constrs)? deriving?)
-    | ('newtype' (typecontext '=>')? simpletype '=' newconstr deriving?)
+    | ('data' (typecontext '=>')? simpletype ('=' constrs)? derivings?)
+    | ('newtype' (typecontext '=>')? simpletype '=' newconstr derivings?)
     // GADT declaration
-    | ('data' capi_ctype? tycl_hdr opt_kind_sig? gadt_constrlist? deriving?)
+    | ('data' capi_ctype? tycl_hdr opt_kind_sig? gadt_constrlist? derivings?)
     | ('newtype' capi_ctype? tycl_hdr opt_kind_sig?)
     // data family
     | ('data' 'family' type opt_datafam_kind_sig?)
@@ -159,11 +159,11 @@ inst_decl
     | ('type' 'instance' ty_fam_inst_eqn)
     // 'constrs' in the end of this rules in GHC
     // This parser no use docs
-    | ('data' 'instance' capi_ctype? tycl_hdr_inst deriving?)
-    | ('newtype' 'instance' capi_ctype? tycl_hdr_inst deriving?)
+    | ('data' 'instance' capi_ctype? tycl_hdr_inst derivings?)
+    | ('newtype' 'instance' capi_ctype? tycl_hdr_inst derivings?)
     // For GADT
-    | ('data' 'instance' capi_ctype? tycl_hdr_inst opt_kind_sig? gadt_constrlist? deriving?)
-    | ('newtype' 'instance' capi_ctype? tycl_hdr_inst opt_kind_sig? gadt_constrlist? deriving?)
+    | ('data' 'instance' capi_ctype? tycl_hdr_inst opt_kind_sig? gadt_constrlist? derivings?)
+    | ('newtype' 'instance' capi_ctype? tycl_hdr_inst opt_kind_sig? gadt_constrlist? derivings?)
     ;
 
 overlap_pragma
@@ -254,6 +254,73 @@ at_decl_cls
     | ('type' 'family'? type opt_at_kind_inj_sig?)
     | ('type' 'instance'? ty_fam_inst_eqn)
     ;
+
+// Associated type instances
+at_decl_inst
+    :
+    // type instance declarations, with optional 'instance' keyword
+    ('type' 'instance'? ty_fam_inst_eqn)
+    // data/newtype instance declaration, with optional 'instance' keyword
+    | ('data' 'instance'? capi_ctype? tycl_hdr_inst constrs derivings?)
+    | ('newtype' 'instance'? capi_ctype? tycl_hdr_inst constrs derivings?)
+    // GADT instance declaration, with optional 'instance' keyword
+    | ('data' 'instance'? capi_ctype? tycl_hdr_inst opt_kind_sig? gadt_constrlist? derivings?)
+    | ('newtype' 'instance'? capi_ctype? tycl_hdr_inst opt_kind_sig? gadt_constrlist? derivings?)
+    ;
+
+// Family result/return kind signatures
+
+opt_kind_sig
+    :
+    '::' kind
+    ;
+
+opt_datafam_kind_sig
+    :
+    '::' kind
+    ;
+
+opt_tyfam_kind_sig
+    :
+    ('::' kind)
+    | ('=' tv_bndr)
+    ;
+
+opt_at_kind_inj_sig
+    :
+    ('::' kind)
+    | ('=' tv_bndr '|' injectivity_cond)
+    ;
+
+tycl_hdr
+    :
+    (tycl_context '=>' type)
+    | type
+    ;
+
+tycl_hdr_inst
+    :
+    ('forall' tv_bndrs '.' tycl_context '=>' type)
+    | ('forall' tv_bndr '.' type) 
+    | (tycl_context '=>' type)
+    | type
+    ;
+
+capi_ctype
+    :
+    ('{-#' 'CTYPE' STRING STRING '#-}')
+    | ('{-#' 'CTYPE' STRING '#-}')
+    ;
+
+// -------------------------------------------
+// Stand-alone deriving
+
+standalone_deriving
+    :
+    'deriving' deriv_standalone_strategy? 'instance' overlap_pragma? inst_type
+    ;
+
+// -------------------------------------------
 
 where_inst
     :
@@ -626,60 +693,6 @@ gtycon
     | ( '(' ',' '{' ',' '}' ')' )
     ;
 
-// Family result/return kind signatures
-
-opt_kind_sig
-    :
-    '::' kind
-    ;
-
-opt_datafam_kind_sig
-    :
-    '::' kind
-    ;
-
-opt_tyfam_kind_sig
-    :
-    ('::' kind)
-    | ('=' tv_bndr)
-    ;
-
-opt_at_kind_inj_sig
-    :
-    ('::' kind)
-    | ('=' tv_bndr '|' injectivity_cond)
-    ;
-
-tycl_hdr
-    :
-    (tycl_context '=>' type)
-    | type
-    ;
-
-tycl_hdr_inst
-    :
-    ('forall' tv_bndrs '.' tycl_context '=>' type)
-    | ('forall' tv_bndr '.' type) 
-    | (tycl_context '=>' type)
-    | type
-    ;
-
-capi_ctype
-    :
-    ('{-#' 'CTYPE' STRING STRING '#-}')
-    | ('{-#' 'CTYPE' STRING '#-}')
-    ;
-
-// -------------------------------------------
-// Stand-alone deriving
-
-standalone_deriving
-    :
-    'deriving' deriv_standalone_strategy? 'instance' overlap_pragma? inst_type
-    ;
-
-
-
 typecontext
     :
     cls
@@ -747,6 +760,11 @@ fielddecls
 fielddecl
     :
     sig_vars '::' ctype
+    ;
+
+derivings
+    :
+    deriving+
     ;
 
 deriving

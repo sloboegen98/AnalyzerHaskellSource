@@ -409,6 +409,16 @@ wherebinds
     'where' binds
     ;
 
+decl
+    :
+    '{-#' 'INLINE' qvar '#-}'
+    | '{-#' 'NOINLINE' qvar '#-}'
+    | '{-#' 'SPECIALIZE' specs '#-}'
+    | gendecl
+    | ((funlhs | pat) rhs)
+    | semi+
+    ;
+
 // -------------------------------------------
 // Transformation Rules
 
@@ -864,180 +874,6 @@ deriv_clause_types
     ;
 
 // -------------------------------------------
-// Value definition
-
-// {- Note [Declaration/signature overlap]
-// ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-// There's an awkward overlap with a type signature.  Consider
-//         f :: Int -> Int = ...rhs...
-//    Then we can't tell whether it's a type signature or a value
-//    definition with a result signature until we see the '='.
-//    So we have to inline enough to postpone reductions until we know.
-// -}
-
-// {-
-//   ATTENTION: Dirty Hackery Ahead! If the second alternative of vars is var
-//   instead of qvar, we get another shift/reduce-conflict. Consider the
-//   following programs:
-
-//      { (^^) :: Int->Int ; }          Type signature; only var allowed
-
-//      { (^^) :: Int->Int = ... ; }    Value defn with result signature;
-//                                      qvar allowed (because of instance decls)
-
-//   We can't tell whether to reduce var to qvar until after we've read the signatures.
-// -}
-
-decl
-    :
-    '{-#' 'INLINE' qvar '#-}'
-    | '{-#' 'NOINLINE' qvar '#-}'
-    | '{-#' 'SPECIALIZE' specs '#-}'
-    | gendecl
-    | ((funlhs | pat) rhs)
-    | semi+
-    ;
-
-rhs
-    :
-    ('=' exp wherebinds?)
-    | (gdrhs wherebinds?)
-    ;
-
-gdrhs
-    :
-    gdrh+
-    ;
-
-// sigdecl rule
-// TODO
-
-// -------------------------------------------
-// Expressions
-
-quasiquote
-    :
-    th_quasiquote
-    | th_qquasiquote
-    ;
-
-
-gdrh
-    :
-    '|' guardquals '=' exp
-    ;
-
-exp
-    :
-    (infixexp '::' sigtype)
-    | infixexp
-    ;
-
-infixexp
-    :
-    (lexp qop infixexp)
-    | ('-' infixexp)
-    | lexp
-    ;
-
-lexp
-    :
-    ('\\' apat+ '->' exp)
-    | ('let' decllist 'in' exp)
-    | ({LambdaCase}? LCASE alts)
-    | ('if' exp semi? 'then' exp semi? 'else' exp)
-    | ({MultiWayIf}? 'if' ifgdpats)
-    | ('case' exp 'of' alts)
-    | ('do' stmts)
-    | ({RecursiveDo}? 'mdo' stmts)
-    | fexp
-    ;
-
-fexp
-    :
-    aexp+
-    ;
-
-aexp
-    :
-    qvar
-    | gcon
-    | literal
-    | ( '(' exp ')' )
-    | ( '(' exp ',' exp (',' exp)* ')' )
-    | ( '[' exp (',' exp)* ']' )
-    | ( '[' exp (',' exp)? '..' exp? ']' )
-    | ( '[' exp '|' qual (',' qual)* ']' )
-    | ( '(' infixexp qop ')' )
-    | ( '(' qop infixexp ')' )
-    | ( qcon '{' (fbind (',' fbind))? '}' )
-    | ('{' fbind (',' fbind)* '}')+
-    // Template Haskell
-    | splice_untyped
-    | splice_typed
-    | '[|' exp '|]'
-    | '[||' exp '||]'
-    | '[t|' ktype '|]'
-    | '[p|' infixexp '|]'
-    | '[d|' cvtopbody '|]'
-    | quasiquote
-    ;
-
-splice_untyped
-    :
-    '$' aexp
-    ;
-
-splice_typed
-    :
-    '$$' aexp
-    ;
-
-cvtopbody
-    :
-    open cvtopdecls0? close
-    ;
-
-cvtopdecls0
-    :
-    topdecls semi*
-    ;
-
-// -------------------------------------------
-
-// Tuple expressions
-// TODO
-
-// -------------------------------------------
-
-// List expressions
-// TODO
-
-// -------------------------------------------
-
-// List Comprehensions
-// TODO
-
-// -------------------------------------------
-// Guards
-
-// Check!
-
-guardquals
-    :
-    guard (',' guard)*
-    ;
-
-guard
-    :
-    pat '<-' infixexp
-    | 'let' binds
-    | infixexp
-    ;
-
-
-// -------------------------------------------
-
 
 
 specs
@@ -1152,6 +988,39 @@ funlhs
     | ( '(' funlhs ')' apat+)
     ;
 
+rhs
+    :
+    ('=' exp wherebinds?)
+    | (gdrhs wherebinds?);
+
+gdrhs
+    :
+    gdrh+
+    ;
+
+gdrh
+    :
+    '|' guards '=' exp
+    ;
+
+guards
+    :
+    guard (',' guard)*
+    ;
+
+guard
+    :
+    pat '<-' infixexp
+    | 'let' decllist
+    | infixexp
+    ;
+
+quasiquote
+    :
+    th_quasiquote
+    | th_qquasiquote
+    ;
+
 th_quasiquote
     :
     '[' varid '|'
@@ -1162,11 +1031,87 @@ th_qquasiquote
     '[' qvarid '|'
     ;
 
+exp
+    :
+    (infixexp '::' sigtype)
+    | infixexp
+    ;
+
+infixexp
+    :
+    (lexp qop infixexp)
+    | ('-' infixexp)
+    | lexp
+    ;
+
+lexp
+    :
+    ('\\' apat+ '->' exp)
+    | ('let' decllist 'in' exp)
+    | ({LambdaCase}? LCASE alts)
+    | ('if' exp semi? 'then' exp semi? 'else' exp)
+    | ({MultiWayIf}? 'if' ifgdpats)
+    | ('case' exp 'of' alts)
+    | ('do' stmts)
+    | ({RecursiveDo}? 'mdo' stmts)
+    | fexp
+    ;
+
+fexp
+    :
+    aexp+
+    ;
+
+aexp
+    :
+    qvar
+    | gcon
+    | literal
+    | ( '(' exp ')' )
+    | ( '(' exp ',' exp (',' exp)* ')' )
+    | ( '[' exp (',' exp)* ']' )
+    | ( '[' exp (',' exp)? '..' exp? ']' )
+    | ( '[' exp '|' qual (',' qual)* ']' )
+    | ( '(' infixexp qop ')' )
+    | ( '(' qop infixexp ')' )
+    | ( qcon '{' (fbind (',' fbind))? '}' )
+    | ('{' fbind (',' fbind)* '}')+
+    // Template Haskell
+    | splice_untyped
+    | splice_typed
+    | '[|' exp '|]'
+    | '[||' exp '||]'
+    | '[t|' ktype '|]'
+    | '[p|' infixexp '|]'
+    | '[d|' cvtopbody '|]'
+    | quasiquote
+    ;
+
+splice_untyped
+    :
+    '$' aexp
+    ;
+
+splice_typed
+    :
+    '$$' aexp
+    ;
+
+cvtopbody
+    :
+    open cvtopdecls0? close
+    ;
+
+cvtopdecls0
+    :
+    topdecls semi*
+    ;
+
 qual
     :
-    (bindpat '<-' exp)
+    (pat '<-' exp)
+    | ('let' decllist)
     | exp
-    | ('let' binds)
     ;
 
 alts
@@ -1198,14 +1143,8 @@ ifgdpats
 
 gdpat
     :
-    '|' guardquals '->' exp
+    '|' guards '->' exp
     ;
-
-bindpat
-    :
-    exp
-    ;
-
 
 stmts
     :

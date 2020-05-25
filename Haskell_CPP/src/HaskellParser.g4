@@ -109,8 +109,8 @@ topdecl
     | {StandaloneDeriving}? standalone_deriving
     | ('default' '(' (type (',' type)*)? ')' )
     | ('foreign' fdecl)
-    // | ('{-#' 'DEPRECATED' deprecations '#-}')
-    // | ('{-#' 'WARNING' warnings '#-}')
+    | ('{-#' 'DEPRECATED' deprecations? '#-}')
+    | ('{-#' 'WARNING' warnings? '#-}')
     | ('{-#' 'RULES' rules? '#-}')
     | decl
     ;
@@ -193,10 +193,10 @@ decl
 
 rules
     :
-    sig_rule (';' sig_rule)* ';'?
+    pragma_rule (';' pragma_rule)* ';'?
     ;
 
-sig_rule
+pragma_rule
     :
     pstring rule_activation? rule_foralls? infixexp '=' exp
     ;
@@ -230,8 +230,40 @@ rule_var
     ;
 
 // -------------------------------------------
+// Warnings and deprecations (c.f. rules)
 
+warnings
+    :
+    pragma_warning (';' pragma_warning)* ';'?
+    ;
 
+pragma_warning
+    :
+    namelist strings
+    ;
+
+deprecations
+    :
+    pragma_deprecation (';' pragma_deprecation)* ';'?
+    ;
+
+pragma_deprecation
+    :
+    namelist strings
+    ;
+
+strings
+    :
+    pstring
+    | ('[' stringlist? ']')
+    ;
+
+stringlist
+    :
+    pstring (',' pstring)*
+    ;
+
+// -------------------------------------------
 
 specs
     :
@@ -708,6 +740,9 @@ inst
     | ( '(' tyvar '->' tyvar ')' )
     ;
 
+// -------------------------------------------
+// Foreign import and export declarations
+
 fdecl
     :
     ('import' callconv safety? impent var '::' type)
@@ -722,6 +757,8 @@ callconv
 impent : pstring;
 expent : pstring;
 safety : 'unsafe' | 'safe';
+
+// -------------------------------------------
 
 funlhs
     :
@@ -949,16 +986,26 @@ con_list
     con (',' con)*
     ;
 
-var	:    varid   | ( '(' varsym ')' );
-qvar:    qvarid  | ( '(' qvarsym ')');
-con :    conid   | ( '(' consym ')' );
-qcon:    qconid  | ( '(' gconsym ')');
-varop:   varsym  | ('`' varid '`')   ;
-qvarop:  qvarsym | ('`' qvarid '`')	 ;
-conop:   consym  | ('`' conid '`')	 ;
-qconop:  gconsym | ('`' qconid '`')	 ;
-op:      varop   | conop			 ;
-qop:     qvarop  | qconop			 ;
+namelist
+    :
+    name_var (',' name_var)*
+    ;
+
+name_var
+    :
+    var | con
+    ;
+
+var	   : varid   | ( '(' varsym ')' );
+qvar   : qvarid  | ( '(' qvarsym ')');
+con    : conid   | ( '(' consym ')' );
+qcon   : qconid  | ( '(' gconsym ')');
+varop  : varsym  | ('`' varid '`')   ;
+qvarop : qvarsym | ('`' qvarid '`')	 ;
+conop  : consym  | ('`' conid '`')	 ;
+qconop : gconsym | ('`' qconid '`')	 ;
+op     : varop   | conop			 ;
+qop    : qvarop  | qconop			 ;
 gconsym: ':'  	 | qconsym			 ;
 
 qtyconop: qtyconsym | ('`' qtycon '`');

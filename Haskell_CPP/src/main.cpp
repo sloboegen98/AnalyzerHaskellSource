@@ -6,7 +6,6 @@
 #include "antlr4-runtime.h"
 #include "HaskellLexer.h"
 #include "HaskellParser.h"
-#include "HaskellVisitor.h"
 
 class MyParserErrorListener: public antlr4::BaseErrorListener {
   virtual void syntaxError(

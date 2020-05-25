@@ -98,6 +98,13 @@ cname
     ;
 
 // -------------------------------------------
+// Fixity Declarations
+
+fixity: 'infix' | 'infixl' | 'infixr';
+
+ops : op (',' op)*;
+
+// -------------------------------------------
 // Top-Level Declarations
 topdecls : (topdecl semi+| NEWLINE | semi)+;
 
@@ -916,6 +923,17 @@ gdrh
 
 // -------------------------------------------
 // Expressions
+
+th_quasiquote
+    :
+    '[' varid '|'
+    ;
+
+th_qquasiquote
+    :
+    '[' qvarid '|'
+    ;
+
 quasiquote
     :
     th_quasiquote
@@ -1167,6 +1185,16 @@ dbind
 // Warnings and deprecations
 // TODO
 
+namelist
+    :
+    name_var (',' name_var)*
+    ;
+
+name_var
+    :
+    var | con
+    ;
+
 // -------------------------------------------
 // Data constructors
 // There are two different productions here as lifted list constructors
@@ -1235,8 +1263,6 @@ tyconsym: consym | varsym | ':' | '-' | '.';
 
 // -------------------------------------------
 // Operators
-
-ops    : op (',' op)*              ;
 
 op     : varop   | conop           ;
 
@@ -1340,28 +1366,11 @@ spec
     sig_vars '::' type
     ;
 
-cdecls
-    :
-    open ((cdecl semi+)* cdecl semi*)? close
-    ;
-
-cdecl
-    :
-    gendecl
-    | ((funlhs | var) rhs)
-    ;
-
 gendecl
     :
     // vars '::' (typecontext '=>')? type
     sig_vars '::' ctype
     | (fixity (DECIMAL)? ops)
-    ;
-
-
-fixity
-    :
-    'infix' | 'infixl' | 'infixr'
     ;
 
 typecontext
@@ -1389,17 +1398,6 @@ multiparam
     | qconid
     ;
 
-scontext
-    :
-    simpleclass
-    | ( '(' (simpleclass (',' simpleclass)*)? ')' )
-    ;
-
-simpleclass
-    :
-    qtycls tyvar
-    ;
-
 simpletype
     :
     tycon tyvar*
@@ -1411,24 +1409,12 @@ newconstr
     | (con '{' var '::' type '}')
     ;
 
-
 funlhs
     :
     (var apat+)
     | (pat varop pat)
     | ( '(' funlhs ')' apat+)
     ;
-
-th_quasiquote
-    :
-    '[' varid '|'
-    ;
-
-th_qquasiquote
-    :
-    '[' qvarid '|'
-    ;
-
 
 gcon
     :
@@ -1438,15 +1424,6 @@ gcon
     | qcon
     ;
 
-namelist
-    :
-    name_var (',' name_var)*
-    ;
-
-name_var
-    :
-    var | con
-    ;
 
 
 gconsym: ':'  	 | qconsym			 ;
@@ -1468,9 +1445,6 @@ sysdcon_nolist
     ;
 
 special : '(' | ')' | ',' | ';' | '[' | ']' | '`' | '{' | '}';
-
-
-
 
 symbol: ascSymbol;
 ascSymbol: '!' | '#' | '$' | '%' | '&' | '*' | '+'

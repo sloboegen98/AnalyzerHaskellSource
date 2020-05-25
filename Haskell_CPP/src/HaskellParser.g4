@@ -219,8 +219,7 @@ opt_injective_info
 injectivity_cond
     :
     // but in GHC new tyvarid rule
-    tyvarid
-    | (tyvarid '->' inj_varids)
+    tyvarid '->' inj_varids
     ;
 
 inj_varids
@@ -244,7 +243,7 @@ ty_fam_inst_eqn_list
 
 ty_fam_inst_eqns
     :
-    ty_fam_inst_eqn (semi ty_fam_inst_eqn)* semi?
+    ty_fam_inst_eqn (semi+ ty_fam_inst_eqn)* semi*
     ;
 
 ty_fam_inst_eqn
@@ -270,6 +269,7 @@ at_decl_cls
     ;
 
 // Associated type instances
+// 
 at_decl_inst
     :
     // type instance declarations, with optional 'instance' keyword
@@ -303,7 +303,7 @@ opt_tyfam_kind_sig
 opt_at_kind_inj_sig
     :
     ('::' kind)
-    | ('=' tv_bndr '|' injectivity_cond)
+    | ('=' tv_bndr_no_braces '|' injectivity_cond)
     ;
 
 tycl_hdr
@@ -315,7 +315,7 @@ tycl_hdr
 tycl_hdr_inst
     :
     ('forall' tv_bndrs? '.' tycl_context '=>' type)
-    | ('forall' tv_bndr '.' type) 
+    | ('forall' tv_bndrs? '.' type) 
     | (tycl_context '=>' type)
     | type
     ;
@@ -707,6 +707,13 @@ tv_bndrs
     ;
 
 tv_bndr
+    :
+    tv_bndr_no_braces
+    | ('{' tyvar '}')
+    | ('{' tyvar '::' kind '}')
+    ;
+
+tv_bndr_no_braces
     :
     tyvar
     | ('(' tyvar '::' kind ')')
@@ -1352,7 +1359,6 @@ name_var
 
 qcon_nowiredlist : gen_qcon | sysdcon_nolist;
 
-// qcon   : qconid  | ( '(' gconsym ')');
 qcon  : gen_qcon | sysdcon;
 
 gen_qcon : qconid | ( '(' qconsym ')' ); 

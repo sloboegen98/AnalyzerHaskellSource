@@ -17,7 +17,7 @@ options { tokenVocab=HaskellLexer; }
     bool RecursiveDo = true;
 }
 
-module :  OCURLY? semi* pragmas? semi* (module_content | body) CCURLY? EOF;
+module :  OCURLY? semi* pragmas? semi* (module_content | body) CCURLY? semi? EOF;
 
 module_content
     :
@@ -133,6 +133,7 @@ topdecl
     | standalone_kind_sig
     | inst_decl
     | standalone_deriving
+    | role_annot
     | ('default' '(' comma_types? ')' )
     | ('foreign' fdecl)
     | ('{-#' 'DEPRECATED' deprecations? '#-}')
@@ -159,17 +160,17 @@ cl_decl
 ty_decl
     :
     // ordinary type synonyms
-    ('type' type '=' ktypedoc)
-    // type family declaration
-    | ('type' 'family' type opt_tyfam_kind_sig? opt_injective_info? where_type_family?)
+    'type' type '=' ktypedoc
+    // type family declarations
+    | 'type' 'family' type opt_tyfam_kind_sig? opt_injective_info? where_type_family?
     // ordinary data type or newtype declaration
-    | ('data' (typecontext '=>')? simpletype ('=' constrs)? derivings?)
-    | ('newtype' (typecontext '=>')? simpletype '=' newconstr derivings?)
-    // GADT declaration
-    | ('data' capi_ctype? tycl_hdr opt_kind_sig? gadt_constrlist? derivings?)
-    | ('newtype' capi_ctype? tycl_hdr opt_kind_sig?)
-    // data family
-    | ('data' 'family' type opt_datafam_kind_sig?)
+    | 'data' capi_ctype? tycl_hdr constrs derivings?
+    | 'newtype' capi_ctype? tycl_hdr constrs derivings?
+    // ordinary GADT declaration
+    | 'data' capi_ctype? tycl_hdr opt_kind_sig? gadt_constrlist? derivings?
+    | 'newtype' capi_ctype? tycl_hdr opt_kind_sig? gadt_constrlist? derivings?
+    // data/newtype family
+    | 'data' 'family' type opt_datafam_kind_sig?
     ;
 
 // standalone kind signature
@@ -933,7 +934,17 @@ gadt_constr
 // -}
 
 // NOT AS IN GHC
+// constrs
+//     :
+//     constr ('|' constr)*
+//     ;
+
 constrs
+    :
+    '=' constrs1
+    ;
+
+constrs1
     :
     constr ('|' constr)*
     ;
@@ -990,11 +1001,26 @@ constrs
 
 // -}
 
+// constr
+//     :
+//     (con ('!'? atype)*)
+//     | ((btype | ('!' atype)) conop (btype | ('!' atype)))
+//     | (con '{' fielddecls? '}')
+//     ;
+
 constr
     :
-    (con ('!'? atype)*)
-    | ((btype | ('!' atype)) conop (btype | ('!' atype)))
-    | (con '{' fielddecls? '}')
+    forall? (constr_context '=>')? constr_stuff
+    ;
+
+forall
+    :
+    'forall' tv_bndrs? '.'
+    ;
+
+constr_stuff
+    :
+    constr_tyapps
     ;
 
 fielddecls
@@ -1214,7 +1240,7 @@ aexp2
     | '[p|' infixexp '|]'
     | '[d|' cvtopbody '|]'
     | quasiquote
-    | ('(|' aexp cmdargs? '|)')
+    | (AopenParen aexp cmdargs? AopenParen)
     ;
 
 splice_exp

@@ -2,21 +2,6 @@ parser grammar HaskellParser;
 
 options { tokenVocab=HaskellLexer; }
 
-@parser::members {
-    bool MultiWayIf = true;
-    bool MagicHash  = true;
-    bool FlexibleInstances = true;
-
-    bool FunctionalDependencies = true;
-    bool TypeFamilies = true;
-    bool GADTs = true;
-    bool StandaloneDeriving = true;
-    bool DerivingVia = true;
-    bool LambdaCase = true;
-    bool EmptyCase  = true;
-    bool RecursiveDo = true;
-}
-
 module :  OCURLY? semi* pragmas? semi* (module_content | body) CCURLY? semi? EOF;
 
 module_content
@@ -47,7 +32,7 @@ pragma
     ;
 
 language_pragma
-    :  
+    :
     '{-#' 'LANGUAGE'  extension (',' extension)* '#-}' semi?
     ;
 
@@ -1191,7 +1176,7 @@ aexp
     (qvar '@' aexp)
     | ('~' aexp)
     | ('!' aexp)
-    | ('\\' apat+ '->' exp)
+    | ('\\' apats '->' exp)
     | ('let' decllist 'in' exp)
     | (LCASE alts)
     | ('if' exp semi? 'then' exp semi? 'else' exp)
@@ -1425,31 +1410,52 @@ gdpat
     '|' guards '->' exp
     ;
 
+// pat
+//     :
+//     (lpat qconop pat)
+//     | lpat
+//     ;
+
 pat
     :
-    (lpat qconop pat)
-    | lpat
+    exp
     ;
 
-lpat
+bindpat
     :
-    apat
-    | ('-' (integer | pfloat))
-    | (gcon apat+)
+    exp
     ;
 
 apat
     :
-    (var ('@' apat)?)
-    | gcon
-    | (qcon '{' (fpat (',' fpat)*)? '}')
-    | literal
-    | '_'
-    | ('(' pat ')')
-    | ('(' pat ',' pat (',' pat)* ')')
-    | ('[' pat (',' pat)* ']')
-    | ('~'apat)
+    aexp
     ;
+
+apats
+    :
+    apat+
+    ;
+
+
+// lpat
+//     :
+//     apat
+//     | ('-' (integer | pfloat))
+//     | (gcon apat+)
+//     ;
+
+// apat
+//     :
+//     (var ('@' apat)?)
+//     | gcon
+//     | (qcon '{' (fpat (',' fpat)*)? '}')
+//     | literal
+//     | '_'
+//     | ('(' pat ')')
+//     | ('(' pat ',' pat (',' pat)* ')')
+//     | ('[' pat (',' pat)* ']')
+//     | ('~'apat)
+//     ;
 
 fpat
     :
@@ -1475,11 +1481,18 @@ stmt
     | semi+
     ;
 
+// qual
+//     :
+//     (pat '<-' exp)
+//     | ('let' decllist)
+//     | exp
+//     ;
+
 qual
     :
-    (pat '<-' exp)
-    | ('let' decllist)
+    bindpat '<-' exp
     | exp
+    | 'let' binds
     ;
 
 // -------------------------------------------

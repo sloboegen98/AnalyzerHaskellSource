@@ -121,7 +121,12 @@ topdecl
     | ('{-#' 'DEPRECATED' deprecations? '#-}')
     | ('{-#' 'WARNING' warnings? '#-}')
     | ('{-#' 'RULES' rules? '#-}')
-    | decl
+    | decl_no_th
+    // -- Template Haskell Extension
+    //  The $(..) form is one possible form of infixexp
+    //  but we treat an arbitrary expression just as if
+    //  it had a $(..) wrapped around it
+    | infixexp
     ;
 
 // Type classes
@@ -521,6 +526,10 @@ fspec
 // -------------------------------------------
 // Type signatures
 
+opt_sig : '::' sigtype;
+
+opt_tyconsig : '::' gtycon;
+
 sigtype
     :
     ctype
@@ -896,13 +905,33 @@ deriv_clause_types
 //   We can't tell whether to reduce var to qvar until after we've read the signatures.
 // -}
 
-decl
+// decl
+//     :
+//     '{-#' 'INLINE' qvar '#-}'
+//     | '{-#' 'NOINLINE' qvar '#-}'
+//     | '{-#' 'SPECIALIZE' specs '#-}'
+//     | gendecl
+//     | ((funlhs | pat) rhs)
+//     | semi+
+//     ;
+
+decl_no_th
     :
-    '{-#' 'INLINE' qvar '#-}'
-    | '{-#' 'NOINLINE' qvar '#-}'
-    | '{-#' 'SPECIALIZE' specs '#-}'
-    | gendecl
-    | ((funlhs | pat) rhs)
+    sigdecl
+    | (infixexp opt_sig? rhs)
+    // | pattern_synonym_decl
+    // | docdecl
+    | semi+
+    ;
+
+decl 
+    :
+    decl_no_th
+
+    // Why do we only allow naked declaration splices in top-level
+    // declarations and not here? Short answer: because readFail009
+    // fails terribly with a panic in cvBindsAndSigs otherwise.
+    | splice_exp
     | semi+
     ;
 
@@ -919,6 +948,15 @@ gdrhs
 gdrh
     :
     '|' guards '=' exp
+    ;
+
+sigdecl
+    : 
+    (infixexp '::' sigtypedoc)
+    | (var ',' sig_vars '::' sigtypedoc)
+    | (fixity integer? ops)
+    // | (pattern_synonym_sig)
+    // |(semi+)
     ;
 
 // -------------------------------------------
@@ -946,45 +984,69 @@ exp
     | infixexp
     ;
 
+// infixexp
+//     :
+//     (lexp qop infixexp)
+//     | ('-' infixexp)
+//     | lexp
+//     ;
+
 infixexp
     :
-    (lexp qop infixexp)
-    | ('-' infixexp)
-    | lexp
+    exp10 (qop exp10p)*
     ;
 
-lexp
+exp10p
     :
-    ('\\' apat+ '->' exp)
-    | ('let' decllist 'in' exp)
-    | ({LambdaCase}? LCASE alts)
-    | ('if' exp semi? 'then' exp semi? 'else' exp)
-    | ({MultiWayIf}? 'if' ifgdpats)
-    | ('case' exp 'of' alts)
-    | ('do' stmtlist)
-    | ({RecursiveDo}? 'mdo' stmtlist)
-    | fexp
+    exp10
+    ;
+
+exp10
+    :
+    '-'? fexp
     ;
 
 fexp
     :
-    aexp+
+    aexp+ ('@' atype)?
     ;
 
 aexp
     :
+    (qvar '@' aexp)
+    | ('~' aexp)
+    | ('!' aexp)
+    | ('\\' apat+ '->' exp)
+    | ('let' decllist 'in' exp)
+    | (LCASE alts)
+    | ('if' exp semi? 'then' exp semi? 'else' exp)
+    | ('if' ifgdpats)
+    | ('case' exp 'of' alts)
+    | ('do' stmtlist)
+    | ('mdo' stmtlist)
+    | aexp1
+    ;
+
+aexp1
+    :
+    aexp2 ('{' fbinds? '}')*
+    ;
+
+aexp2
+    :
     qvar
-    | gcon
+    | qcon
+    | varid
     | literal
-    | ( '(' exp ')' )
-    | ( '(' exp ',' exp (',' exp)* ')' )
-    | ( '[' exp (',' exp)* ']' )
-    | ( '[' exp (',' exp)? '..' exp? ']' )
-    | ( '[' exp '|' qual (',' qual)* ']' )
-    | ( '(' infixexp qop ')' )
-    | ( '(' qop infixexp ')' )
-    | ( qcon '{' fbinds? '}' )
-    | ('{' fbind (',' fbind)* '}')+
+    | pstring
+    | integer
+    | pfloat
+    | ('(' texp? ')')
+    | ('(' tup_exprs ')')
+    // | ('(#' texp '#)')
+    // | ('(#' tup_exprs '#)')
+    | ('[' list? ']')
+    | '_'
     // Template Haskell
     | splice_untyped
     | splice_typed
@@ -994,6 +1056,56 @@ aexp
     | '[p|' infixexp '|]'
     | '[d|' cvtopbody '|]'
     | quasiquote
+    ;
+
+
+// lexp
+//     :
+//     ('\\' apat+ '->' exp)
+//     | ('let' decllist 'in' exp)
+//     | ({LambdaCase}? LCASE alts)
+//     | ('if' exp semi? 'then' exp semi? 'else' exp)
+//     | ({MultiWayIf}? 'if' ifgdpats)
+//     | ('case' exp 'of' alts)
+//     | ('do' stmtlist)
+//     | ({RecursiveDo}? 'mdo' stmtlist)
+//     | fexp
+//     ;
+
+// fexp
+//     :
+//     aexp+
+//     ;
+
+// aexp
+//     :
+//     qvar
+//     | gcon
+//     | literal
+//     | ( '(' exp ')' )
+//     | ( '(' exp ',' exp (',' exp)* ')' )
+//     | ( '[' exp (',' exp)* ']' )
+//     | ( '[' exp (',' exp)? '..' exp? ']' )
+//     | ( '[' exp '|' qual (',' qual)* ']' )
+//     | ( '(' infixexp qop ')' )
+//     | ( '(' qop infixexp ')' )
+//     | ( qcon '{' fbinds? '}' )
+//     | ('{' fbind (',' fbind)* '}')+
+//     // Template Haskell
+//     | splice_untyped
+//     | splice_typed
+//     | '[|' exp '|]'
+//     | '[||' exp '||]'
+//     | '[t|' ktype '|]'
+//     | '[p|' infixexp '|]'
+//     | '[d|' cvtopbody '|]'
+//     | quasiquote
+//     ;
+
+splice_exp
+    :
+    splice_typed
+    | splice_untyped
     ;
 
 splice_untyped
@@ -1021,15 +1133,77 @@ cvtopdecls0
 // Tuple expressions
 // TODO
 
+texp
+    :
+    exp
+    | (infixexp qop)
+    | (qopm infixexp)
+    | (exp '->' texp)
+    ;
+
+tup_exprs
+    :
+    (texp commas_tup_tail)
+    | (texp bars)
+    | (commas tup_tail?)
+    | (bars texp bars?)
+    ;
+
+commas_tup_tail
+    :
+    commas tup_tail?
+    ;
+
+tup_tail
+    :
+    texp commas_tup_tail
+    | texp
+    ;
+
 // -------------------------------------------
 
 // List expressions
 // TODO
 
+list
+    :
+    texp
+    | lexps
+    | texp '..'
+    | texp ',' exp '..'
+    | texp '..' exp
+    | texp ',' exp '..' exp
+    | texp '|' flattenedpquals
+    ;
+
+lexps
+    :
+    texp ',' texp (',' texp)*
+    ;
+
+
 // -------------------------------------------
 
 // List Comprehensions
 // TODO
+
+flattenedpquals
+    :
+    pquals
+    ;
+
+pquals
+    :
+    squals ('|' squals)*
+    ;
+
+squals
+    :
+    // transformqual (',' transformqual)*
+    // | transformqual (',' qual)*
+    // | qual (',' transformqual)*
+    | qual (',' qual)*
+    ;
 
 // -------------------------------------------
 // Guards (Different from GHC)
@@ -1270,7 +1444,13 @@ varop  : varsym  | ('`' varid '`') ;
 
 qop    : qvarop  | qconop		   ;
 
+qopm   : qvaropm | qconop | hole_op;
+
+hole_op: '`' '_' '`';
+
 qvarop : qvarsym | ('`' qvarid '`');
+
+qvaropm: qvarsym_no_minus | ('`' qvarid '`');
 
 // -------------------------------------------
 // Type variables
@@ -1305,7 +1485,14 @@ varid : (VARID | special_id) ({MagicHash}? '#'*);
 
 qvarsym: (modid '.')? varsym;
 
-varsym : ascSymbol+;
+qvarsym_no_minus
+    : varsym_no_minus
+    | qvarsym
+    ;
+
+varsym : varsym_no_minus | '-';
+
+varsym_no_minus : ascSymbol+;
 
 // These special_ids are treated as keywords in various places,
 // but as ordinary ids elsewhere.   'special_id' collects all these
@@ -1352,6 +1539,10 @@ semi : ';' | SEMI;
 // Miscellaneous (mostly renamings)
 
 modid : (conid '.')* conid;
+
+commas: ','+;
+
+bars : '|'+;
 
 // -------------------------------------------
 
@@ -1449,7 +1640,7 @@ special : '(' | ')' | ',' | ';' | '[' | ']' | '`' | '{' | '}';
 symbol: ascSymbol;
 ascSymbol: '!' | '#' | '$' | '%' | '&' | '*' | '+'
         | '.' | '/' | '<' | '=' | '>' | '?' | '@'
-        | '\\' | '^' | '|' | '-' | '~' | ':' ;
+        | '\\' | '^' | '|' | '~' | ':' ;
 
 
 tycls : conid;

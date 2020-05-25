@@ -122,6 +122,8 @@ TopenDecQoute      : '[d|';
 TcloseQoute        : '|]' ;
 TopenTexpQuote     : '[||';
 TcloseTExpQoute    : '||]';
+OpenBoxParen       : '(#' ;
+CloseBoxParen      : '#)' ;
 
 
 

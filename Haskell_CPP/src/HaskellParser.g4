@@ -1045,7 +1045,7 @@ deriving
     :
     ('deriving' deriv_clause_types)
     | ('deriving' deriv_strategy_no_via deriv_clause_types)
-    | ('deriving' deriv_clause_types {DerivingVia}? deriv_strategy_via)
+    | ('deriving' deriv_clause_types deriv_strategy_via)
     ;
 
 deriv_clause_types
@@ -1390,7 +1390,7 @@ guard
 alts
     :
     (open (alt semi*)+ close)
-    | ({EmptyCase}? open close)
+    | (open close)
     ;
 
 alt : pat alt_rhs ;
@@ -1471,7 +1471,7 @@ stmts
 
 stmt
     : qual
-    | ({RecursiveDo}? 'rec' stmtlist)
+    | ('rec' stmtlist)
     | semi+
     ;
 
@@ -1688,7 +1688,7 @@ qvarid : (modid '.')? varid;
 // Note that 'role' and 'family' get lexed separately regardless of
 // the use of extensions. However, because they are listed here,
 // this is OK and they can be used as normal varids.
-varid : (VARID | special_id) ({MagicHash}? '#'*);
+varid : (VARID | special_id) '#'*;
 
 qvarsym: (modid '.')? varsym;
 
@@ -1724,7 +1724,7 @@ special_id
 
 qconid : (modid '.')? conid;
 
-conid : CONID ({MagicHash}? '#'*);
+conid : CONID '#'*;
 
 qconsym: (modid '.')? consym;
 

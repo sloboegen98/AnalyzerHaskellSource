@@ -924,7 +924,7 @@ quasiquote
 
 gdrh
     :
-    '|' guards '=' exp
+    '|' guardquals '=' exp
     ;
 
 exp
@@ -1021,9 +1021,18 @@ cvtopdecls0
 // -------------------------------------------
 // Guards
 
+// Check!
+
 guardquals
     :
-    qual (',' qual)
+    guard (',' guard)*
+    ;
+
+guard
+    :
+    pat '<-' infixexp
+    | 'let' binds
+    | infixexp
     ;
 
 
@@ -1143,18 +1152,6 @@ funlhs
     | ( '(' funlhs ')' apat+)
     ;
 
-guards
-    :
-    guard (',' guard)*
-    ;
-
-guard
-    :
-    pat '<-' infixexp
-    | 'let' decllist
-    | infixexp
-    ;
-
 th_quasiquote
     :
     '[' varid '|'
@@ -1167,9 +1164,9 @@ th_qquasiquote
 
 qual
     :
-    (pat '<-' exp)
-    | ('let' decllist)
+    (bindpat '<-' exp)
     | exp
+    | ('let' binds)
     ;
 
 alts
@@ -1201,8 +1198,14 @@ ifgdpats
 
 gdpat
     :
-    '|' guards '->' exp
+    '|' guardquals '->' exp
     ;
+
+bindpat
+    :
+    exp
+    ;
+
 
 stmts
     :

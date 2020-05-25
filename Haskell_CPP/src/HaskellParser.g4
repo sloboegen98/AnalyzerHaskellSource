@@ -396,6 +396,19 @@ decllist
     open decls? close
     ;
 
+// Binding groups other than those of class and instance declarations
+// 
+binds
+    :
+    decllist
+    | (open dbinds? close)
+    ;
+
+wherebinds
+    :
+    'where' binds
+    ;
+
 decl
     :
     '{-#' 'INLINE' qvar '#-}'
@@ -482,6 +495,35 @@ stringlist
     ;
 
 // -------------------------------------------
+
+// Annotations
+// TODO
+
+// -------------------------------------------
+// Foreign import and export declarations
+
+fdecl
+    :
+    ('import' callconv safety? impent var '::' type)
+    | ('export' callconv expent var '::' type)
+    ;
+
+callconv
+    :
+    'ccall' | 'stdcall' | 'cplusplus' | 'javascript'
+    ;
+
+impent : pstring;
+expent : pstring;
+safety : 'unsafe' | 'safe' | 'interruptible'; 
+
+fspec
+    :
+    pstring? var '::' sigtypedoc
+    ; 
+
+// -------------------------------------------
+
 
 specs
     :
@@ -815,26 +857,6 @@ inst
     | ( '(' tyvar '->' tyvar ')' )
     ;
 
-// -------------------------------------------
-// Foreign import and export declarations
-
-fdecl
-    :
-    ('import' callconv safety? impent var '::' type)
-    | ('export' callconv expent var '::' type)
-    ;
-
-callconv
-    :
-    'ccall' | 'stdcall' | 'cplusplus' | 'javascript'
-    ;
-
-impent : pstring;
-expent : pstring;
-safety : 'unsafe' | 'safe';
-
-// -------------------------------------------
-
 funlhs
     :
     (var apat+)
@@ -844,8 +866,8 @@ funlhs
 
 rhs
     :
-    ('=' exp ('where' decllist)?)
-    | (gdrhs ('where' decllist)?);
+    ('=' exp wherebinds?)
+    | (gdrhs wherebinds?);
 
 gdrhs
     :
@@ -1015,6 +1037,16 @@ stmt
 fbind
     :
     qvar '=' exp
+    ;
+
+dbinds
+    :
+    dbind (semi+ dbind) semi*
+    ;
+
+dbind
+    :
+    varid '=' exp
     ;
 
 pat

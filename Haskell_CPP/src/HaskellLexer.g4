@@ -48,6 +48,7 @@ FORALL   : 'forall'    ;
 FOREIGN  : 'foreign'   ;
 EXPORT   : 'export'    ;
 SAFE     : 'safe'      ;
+INTERRUPTIBLE : 'interruptible';
 UNSAFE   : 'unsafe'    ;
 MDO      : 'mdo'       ;
 FAMILY   : 'family'    ;

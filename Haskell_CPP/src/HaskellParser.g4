@@ -914,7 +914,126 @@ gdrh
     '|' guards '=' exp
     ;
 
-// 
+// -------------------------------------------
+// Expressions
+quasiquote
+    :
+    th_quasiquote
+    | th_qquasiquote
+    ;
+
+exp
+    :
+    (infixexp '::' sigtype)
+    | infixexp
+    ;
+
+infixexp
+    :
+    (lexp qop infixexp)
+    | ('-' infixexp)
+    | lexp
+    ;
+
+lexp
+    :
+    ('\\' apat+ '->' exp)
+    | ('let' decllist 'in' exp)
+    | ({LambdaCase}? LCASE alts)
+    | ('if' exp semi? 'then' exp semi? 'else' exp)
+    | ({MultiWayIf}? 'if' ifgdpats)
+    | ('case' exp 'of' alts)
+    | ('do' stmts)
+    | ({RecursiveDo}? 'mdo' stmts)
+    | fexp
+    ;
+
+fexp
+    :
+    aexp+
+    ;
+
+aexp
+    :
+    qvar
+    | gcon
+    | literal
+    | ( '(' exp ')' )
+    | ( '(' exp ',' exp (',' exp)* ')' )
+    | ( '[' exp (',' exp)* ']' )
+    | ( '[' exp (',' exp)? '..' exp? ']' )
+    | ( '[' exp '|' qual (',' qual)* ']' )
+    | ( '(' infixexp qop ')' )
+    | ( '(' qop infixexp ')' )
+    | ( qcon '{' (fbind (',' fbind))? '}' )
+    | ('{' fbind (',' fbind)* '}')+
+    // Template Haskell
+    | splice_untyped
+    | splice_typed
+    | '[|' exp '|]'
+    | '[||' exp '||]'
+    | '[t|' ktype '|]'
+    | '[p|' infixexp '|]'
+    | '[d|' cvtopbody '|]'
+    | quasiquote
+    ;
+
+splice_untyped
+    :
+    '$' aexp
+    ;
+
+splice_typed
+    :
+    '$$' aexp
+    ;
+
+cvtopbody
+    :
+    open cvtopdecls0? close
+    ;
+
+cvtopdecls0
+    :
+    topdecls semi*
+    ;
+
+// -------------------------------------------
+
+// Tuple expressions
+// TODO
+
+// -------------------------------------------
+
+// List expressions
+// TODO
+
+// -------------------------------------------
+
+// List Comprehensions
+// TODO
+
+// -------------------------------------------
+// Guards (Different from GHC)
+
+guards
+    :
+    guard (',' guard)*
+    ;
+
+guard
+    :
+    pat '<-' infixexp
+    | 'let' decllist
+    | infixexp
+    ;
+
+// -------------------------------------------
+
+
+
+
+
 
 
 specs
@@ -1029,24 +1148,6 @@ funlhs
     | ( '(' funlhs ')' apat+)
     ;
 
-guards
-    :
-    guard (',' guard)*
-    ;
-
-guard
-    :
-    pat '<-' infixexp
-    | 'let' decllist
-    | infixexp
-    ;
-
-quasiquote
-    :
-    th_quasiquote
-    | th_qquasiquote
-    ;
-
 th_quasiquote
     :
     '[' varid '|'
@@ -1055,82 +1156,6 @@ th_quasiquote
 th_qquasiquote
     :
     '[' qvarid '|'
-    ;
-
-exp
-    :
-    (infixexp '::' sigtype)
-    | infixexp
-    ;
-
-infixexp
-    :
-    (lexp qop infixexp)
-    | ('-' infixexp)
-    | lexp
-    ;
-
-lexp
-    :
-    ('\\' apat+ '->' exp)
-    | ('let' decllist 'in' exp)
-    | ({LambdaCase}? LCASE alts)
-    | ('if' exp semi? 'then' exp semi? 'else' exp)
-    | ({MultiWayIf}? 'if' ifgdpats)
-    | ('case' exp 'of' alts)
-    | ('do' stmts)
-    | ({RecursiveDo}? 'mdo' stmts)
-    | fexp
-    ;
-
-fexp
-    :
-    aexp+
-    ;
-
-aexp
-    :
-    qvar
-    | gcon
-    | literal
-    | ( '(' exp ')' )
-    | ( '(' exp ',' exp (',' exp)* ')' )
-    | ( '[' exp (',' exp)* ']' )
-    | ( '[' exp (',' exp)? '..' exp? ']' )
-    | ( '[' exp '|' qual (',' qual)* ']' )
-    | ( '(' infixexp qop ')' )
-    | ( '(' qop infixexp ')' )
-    | ( qcon '{' (fbind (',' fbind))? '}' )
-    | ('{' fbind (',' fbind)* '}')+
-    // Template Haskell
-    | splice_untyped
-    | splice_typed
-    | '[|' exp '|]'
-    | '[||' exp '||]'
-    | '[t|' ktype '|]'
-    | '[p|' infixexp '|]'
-    | '[d|' cvtopbody '|]'
-    | quasiquote
-    ;
-
-splice_untyped
-    :
-    '$' aexp
-    ;
-
-splice_typed
-    :
-    '$$' aexp
-    ;
-
-cvtopbody
-    :
-    open cvtopdecls0? close
-    ;
-
-cvtopdecls0
-    :
-    topdecls semi*
     ;
 
 qual

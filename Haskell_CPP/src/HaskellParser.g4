@@ -650,29 +650,6 @@ tyapp
     | unpackedness
     ;
 
-// atype
-//     :
-//     gtycon
-//     | tyvar
-//     | '*'
-//     | ('{' fielddecls '}')
-//     | ('(' ')')
-//     | ('(' ktype (',' ktype)* ')')
-//     | ('[' ktype ']')
-//     | ('(' ktype ')')
-//     | ('[' ktype (',' ktype)* ']')
-//     | quasiquote
-//     | splice_untyped
-//     | ('\'' qcon_nowiredlist)
-//     | ('\'' '(' ktype (',' ktype)*)
-//     | ('\'' '[' ']')
-//     | ('\'' '[' ktype (',' ktype)* ']')
-//     | ('\'' var)
-//     | integer
-//     | STRING
-//     | '_'
-//     ;
-
 atype
     :
     ntgtycon
@@ -1075,15 +1052,24 @@ aexp2
     | pstring
     | integer
     | pfloat
+    // N.B.: sections get parsed by these next two productions.
+    // This allows you to write, e.g., '(+ 3, 4 -)', which isn't
+    // correct Haskell (you'd have to write '((+ 3), (4 -))')
+    // but the less cluttered version fell out of having texps.
     | ('(' texp ')')
     | ('(' tup_exprs ')')
-    // | ('(#' texp '#)')
-    // | ('(#' tup_exprs '#)')
+    | ('(#' texp '#)')
+    | ('(#' tup_exprs '#)')
     | ('[' list ']')
     | '_'
     // Template Haskell
     | splice_untyped
     | splice_typed
+    | ('\'' qvar)
+    | ('\'' qcon)
+    | ('\'\'' tyvar)
+    | ('\'\'' gtycon)
+    | '\'\''
     | '[|' exp '|]'
     | '[||' exp '||]'
     | '[t|' ktype '|]'

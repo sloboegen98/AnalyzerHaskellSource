@@ -322,10 +322,65 @@ standalone_deriving
 
 // -------------------------------------------
 
+// Role annotations
+// TODO
+
+// -------------------------------------------
+
+// Pattern synonyms
+// TODO
+
+// -------------------------------------------
+// Nested declaration
+
+// Declaration in class bodies
+
+decl_cls
+    :
+    at_decl_cls
+    | decl
+    // | 'default' infixexp '::' sigtypedoc
+    ;
+
+decls_cls
+    :
+    (decl_cls semi+)* decl_cls semi*
+    ;
+
+decllist_cls
+    :
+    open decls_cls? close
+    ;
+
+// Class body
+// 
+where_cls
+    :
+    'where' decllist_cls
+    ;
+
+// Declarations in instance bodies
+//
+decl_inst
+    :
+    at_decl_inst
+    | decl
+    ;
+
+decls_inst
+    :
+    decl_inst (semi+ decl_inst)* semi*
+    ;
+
+decllist_inst
+    :
+    open decls_inst? close
+    ;
+
+
 where_inst
     :
-    // In GHC decllist_inst
-    'where' idecls
+    'where' decllist_inst
     ;
 
 decls
@@ -348,7 +403,7 @@ decl
 
 rules
     :
-    pragma_rule (';' pragma_rule)* ';'?
+    pragma_rule (semi pragma_rule)* semi?
     ;
 
 pragma_rule
@@ -389,7 +444,7 @@ rule_var
 
 warnings
     :
-    pragma_warning (';' pragma_warning)* ';'?
+    pragma_warning (semi pragma_warning)* semi?
     ;
 
 pragma_warning
@@ -399,7 +454,7 @@ pragma_warning
 
 deprecations
     :
-    pragma_deprecation (';' pragma_deprecation)* ';'?
+    pragma_deprecation (semi pragma_deprecation)* semi?
     ;
 
 pragma_deprecation
@@ -441,50 +496,11 @@ cdecl
     | ((funlhs | var) rhs)
     ;
 
-idecls
-    :
-    open ((idecl semi+)* idecl semi*)? close
-    ;
-
-idecl
-    :
-    (funlhs | var) rhs
-    ;
-
 gendecl
     :
     // vars '::' (typecontext '=>')? type
     sig_vars '::' ctype
     | (fixity (DECIMAL)? ops)
-    ;
-
-// -------------------------------------------
-// Nested declaration
-
-// Declaration in class bodies
-
-decl_cls
-    :
-    at_decl_cls
-    | decl
-    // default rule
-    ;
-
-decls_cls
-    :
-    // decl_cls (semi decl_cls)* semi?
-    (decl_cls semi+)* decl_cls semi*
-    ;
-
-decllist_cls
-    :
-    open decls_cls? close
-    ;
-
-where_cls
-    :
-    // In GHC decls_cls
-    'where' decllist_cls
     ;
 
 ops

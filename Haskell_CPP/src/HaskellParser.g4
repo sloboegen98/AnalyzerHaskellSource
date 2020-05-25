@@ -1410,12 +1410,6 @@ gdpat
     '|' guards '->' exp
     ;
 
-// pat
-//     :
-//     (lpat qconop pat)
-//     | lpat
-//     ;
-
 pat
     :
     exp
@@ -1435,27 +1429,6 @@ apats
     :
     apat+
     ;
-
-
-// lpat
-//     :
-//     apat
-//     | ('-' (integer | pfloat))
-//     | (gcon apat+)
-//     ;
-
-// apat
-//     :
-//     (var ('@' apat)?)
-//     | gcon
-//     | (qcon '{' (fpat (',' fpat)*)? '}')
-//     | literal
-//     | '_'
-//     | ('(' pat ')')
-//     | ('(' pat ',' pat (',' pat)* ')')
-//     | ('[' pat (',' pat)* ']')
-//     | ('~'apat)
-//     ;
 
 fpat
     :
@@ -1481,12 +1454,6 @@ stmt
     | semi+
     ;
 
-// qual
-//     :
-//     (pat '<-' exp)
-//     | ('let' decllist)
-//     | exp
-//     ;
 
 qual
     :

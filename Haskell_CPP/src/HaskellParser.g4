@@ -117,14 +117,16 @@ topdecl
     | decl
     ;
 
+// Type classes
 cl_decl
     :
     'class' tycl_hdr fds? where_cls?
     ;
 
+// Type declarations (toplevel)
 ty_decl
     :
-    // with TypeFamiles
+    // ordinary type synonyms
     ('type' type '=' ktypedoc)
     // type family declaration
     | ('type' 'family' type opt_tyfam_kind_sig opt_injective_info? where_type_family?)
@@ -138,11 +140,14 @@ ty_decl
     | ('data' 'family' type opt_datafam_kind_sig?)
     ;
 
+// standalone kind signature
+
 standalone_kind_sig
     :
     'type' sks_vars '::' ktypedoc
     ;
 
+// See also: sig_vars
 sks_vars
     :
     oqtycon (',' oqtycon)*
@@ -167,6 +172,87 @@ overlap_pragma
     | '{-#' 'OVERLAPPING' '#-}'
     | '{-#' 'OVERLAPS' '#-}'
     | '{-#' 'INCOHERENT' '#-}'
+    ;
+
+
+deriv_strategy_no_via
+    :
+      'stock'
+    | 'anyclass'
+    | 'newtype'
+    ;
+
+deriv_strategy_via
+    :
+    'via' ktype
+    ;
+
+deriv_standalone_strategy
+    :
+    'stock'
+    | 'anyclass'
+    | 'newtype'
+    | deriv_strategy_via
+    ;
+
+// Injective type families
+
+opt_injective_info
+    :
+    '|' injectivity_cond
+    ;
+
+injectivity_cond
+    :
+    // but in GHC new tyvarid rule
+    tyvarid
+    | (tyvarid '->' inj_varids)
+    ;
+
+inj_varids
+    :
+    tyvarid+
+    ;
+
+// Closed type families
+
+where_type_family
+    :
+    'where' ty_fam_inst_eqn_list
+    ;
+
+ty_fam_inst_eqn_list
+    :
+    (open ty_fam_inst_eqns? close)
+    | ('{' '..' '}')
+    | (open '..' close)
+    ;
+
+ty_fam_inst_eqns
+    :
+    ty_fam_inst_eqn (semi ty_fam_inst_eqn)* semi?
+    ;
+
+ty_fam_inst_eqn
+    :
+    'forall' tv_bndrs '.' type '=' ktype
+    | type '=' ktype
+    ;
+
+//  Associated type family declarations
+
+//  * They have a different syntax than on the toplevel (no family special
+//    identifier).
+
+//  * They also need to be separate from instances; otherwise, data family
+//    declarations without a kind signature cause parsing conflicts with empty
+//    data declarations.
+
+at_decl_cls
+    :
+    ('data' 'family'? type opt_datafam_kind_sig?)
+    | ('type' 'family'? type opt_at_kind_inj_sig?)
+    | ('type' 'instance'? ty_fam_inst_eqn)
     ;
 
 where_inst
@@ -558,11 +644,6 @@ opt_tyfam_kind_sig
     | ('=' tv_bndr)
     ;
 
-opt_injective_info
-    :
-    '|' injectivity_cond
-    ;
-
 opt_at_kind_inj_sig
     :
     ('::' kind)
@@ -597,70 +678,7 @@ standalone_deriving
     'deriving' deriv_standalone_strategy? 'instance' overlap_pragma? inst_type
     ;
 
-deriv_strategy_no_via
-    :
-    'stock'
-    | 'anyclass'
-    | 'newtype'
-    ;
 
-deriv_strategy_via
-    :
-    'via' type
-    ;
-
-deriv_standalone_strategy
-    :
-    'stock'
-    | 'anyclass'
-    | 'newtype'
-    | deriv_strategy_via
-    ;
-
-injectivity_cond
-    :
-    // but in GHC new tyvarid rule
-    tyvarid
-    | (tyvarid '->' inj_varids)
-    ;
-
-inj_varids
-    :
-    tyvarid+
-    ;
-
-// injectivity_cond :: { LInjectivityAnn GhcPs }
-//         : tyvarid '->' inj_varids
-
-where_type_family
-    :
-    'where' ty_fam_inst_eqn_list
-    ;
-
-ty_fam_inst_eqn_list
-    :
-    (open ty_fam_inst_eqns? close)
-    | ('{' '..' '}')
-    | (open '..' close)
-    ;
-
-ty_fam_inst_eqns
-    :
-    ty_fam_inst_eqn (semi ty_fam_inst_eqn)* semi?
-    ;
-
-ty_fam_inst_eqn
-    :
-    'forall' tv_bndrs '.' type '=' ktype
-    | type '=' ktype
-    ;
-
-at_decl_cls
-    :
-    ('data' 'family'? type opt_datafam_kind_sig?)
-    | ('type' 'family'? type opt_at_kind_inj_sig?)
-    | ('type' 'instance'? ty_fam_inst_eqn)
-    ;
 
 typecontext
     :

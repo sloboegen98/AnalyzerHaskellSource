@@ -409,15 +409,6 @@ wherebinds
     'where' binds
     ;
 
-decl
-    :
-    '{-#' 'INLINE' qvar '#-}'
-    | '{-#' 'NOINLINE' qvar '#-}'
-    | '{-#' 'SPECIALIZE' specs '#-}'
-    | gendecl
-    | ((funlhs | pat) rhs)
-    | semi+
-    ;
 
 // -------------------------------------------
 // Transformation Rules
@@ -874,6 +865,56 @@ deriv_clause_types
     ;
 
 // -------------------------------------------
+// Value definitions (CHECK!!!)
+
+// {- Note [Declaration/signature overlap]
+// ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+// There's an awkward overlap with a type signature.  Consider
+//         f :: Int -> Int = ...rhs...
+//    Then we can't tell whether it's a type signature or a value
+//    definition with a result signature until we see the '='.
+//    So we have to inline enough to postpone reductions until we know.
+// -}
+
+// {-
+//   ATTENTION: Dirty Hackery Ahead! If the second alternative of vars is var
+//   instead of qvar, we get another shift/reduce-conflict. Consider the
+//   following programs:
+
+//      { (^^) :: Int->Int ; }          Type signature; only var allowed
+
+//      { (^^) :: Int->Int = ... ; }    Value defn with result signature;
+//                                      qvar allowed (because of instance decls)
+
+//   We can't tell whether to reduce var to qvar until after we've read the signatures.
+// -}
+
+decl
+    :
+    '{-#' 'INLINE' qvar '#-}'
+    | '{-#' 'NOINLINE' qvar '#-}'
+    | '{-#' 'SPECIALIZE' specs '#-}'
+    | gendecl
+    | ((funlhs | pat) rhs)
+    | semi+
+    ;
+
+rhs
+    :
+    ('=' exp wherebinds?)
+    | (gdrhs wherebinds?);
+
+gdrhs
+    :
+    gdrh+
+    ;
+
+gdrh
+    :
+    '|' guards '=' exp
+    ;
+
+// 
 
 
 specs
@@ -986,21 +1027,6 @@ funlhs
     (var apat+)
     | (pat varop pat)
     | ( '(' funlhs ')' apat+)
-    ;
-
-rhs
-    :
-    ('=' exp wherebinds?)
-    | (gdrhs wherebinds?);
-
-gdrhs
-    :
-    gdrh+
-    ;
-
-gdrh
-    :
-    '|' guards '=' exp
     ;
 
 guards

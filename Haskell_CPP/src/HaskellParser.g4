@@ -369,7 +369,7 @@ tyapp
     atype
     | qtyconop
     | tyvarop
-    // | unpackedness
+    | unpackedness
     ;
 
 atype
@@ -410,12 +410,22 @@ sig_vars
     var (',' var)*
     ;
 
+// -------------------------------------------
+// Types
+
+unpackedness
+    :
+      ('{-#' 'UNPACK'   '#-}')
+    | ('{-#' 'NOUNPACK' '#-}')
+    ;
+
 forall_vis_flag
     :
     '.'
     | '->'
     ;
 
+// A ktype/ktypedoc is a ctype/ctypedoc, possibly with a kind annotation
 ktype
     :
     ctype
@@ -428,6 +438,7 @@ ktypedoc
     | ctypedoc '::' kind
     ;
 
+// A ctype is a for-all type
 ctype
     :
     'forall' tv_bndrs forall_vis_flag ctype

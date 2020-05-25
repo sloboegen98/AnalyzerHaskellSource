@@ -61,20 +61,22 @@ STOCK    : 'stock'     ;
 ANYCLASS : 'anyclass'  ;
 VIA      : 'via'       ;
 
-LANGUAGE  : 'LANGUAGE'  ;
-INLINE    : 'INLINE'    ;
-NOINLINE  : 'NOINLINE'  ;
-SPECIALIZE: 'SPECIALIZE';
+LANGUAGE  : 'LANGUAGE'      ;
 
-
-CTYPE       : 'CTYPE'       ;
+INLINE      : 'INLINE'      ;
+NOINLINE    : 'NOINLINE'    ;
+SPECIALIZE  : 'SPECIALIZE'  ;
+RULES       : 'RULES'       ;
 DEPRECATED  : 'DEPRECATED'  ;
+WARNING     : 'WARNING'     ;
+UNPACK      : 'UNPACK'      ;
+NOUNPACK    : 'NOUNPACK'    ;
+CTYPE       : 'CTYPE'       ;
 OVERLAPPING : 'OVERLAPPING' ;
 OVERLAPPABLE: 'OVERLAPPABLE';
 OVERLAPS    : 'OVERLAPS'    ;
 INCOHERENT  : 'INCOHERENT'  ;
-RULES       : 'RULES'       ;
-WARNING     : 'WARNING'     ;
+
 
 LCASE       : '\\' (NEWLINE | WS)* 'case'   ;
 
@@ -140,8 +142,8 @@ ClosePragmaBracket: '#-}';
 // read about
 // https://medium.com/swiftify/parsing-preprocessor-directives-in-objective-c-714a3dde570
 // directives are skip now
-MultiLineMacro : '#' (~ [\n]*? '\\' '\r'? '\n')+ ~ [\n]+ -> skip;
-Directive : '#' ~ [\n]* -> skip;
+// MultiLineMacro : '#' (~ [\n]*? '\\' '\r'? '\n')+ ~ [\n]+ -> skip;
+// Directive : '#' ~ [\n]* -> skip;
 
 COMMENT  : '--' (~[\r\n])* -> skip;
 NCOMMENT : '{-'~[#] .*? '-}' -> skip;

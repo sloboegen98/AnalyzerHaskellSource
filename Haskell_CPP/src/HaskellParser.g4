@@ -965,7 +965,7 @@ aexp
     | ( '[' exp '|' qual (',' qual)* ']' )
     | ( '(' infixexp qop ')' )
     | ( '(' qop infixexp ')' )
-    | ( qcon '{' (fbind (',' fbind))? '}' )
+    | ( qcon '{' fbinds? '}' )
     | ('{' fbind (',' fbind)* '}')+
     // Template Haskell
     | splice_untyped
@@ -1129,6 +1129,40 @@ qual
 // -------------------------------------------
 // Record Field Update/Construction
 
+fbinds
+    :
+    (fbind (',' fbind)*)
+    | ('..')
+    ;
+
+// In GHC 'texp', not 'exp'
+
+// 1) RHS is a 'texp', allowing view patterns (#6038)
+// and, incidentally, sections.  Eg
+// f (R { x = show -> s }) = ...
+// 
+// 2) In the punning case, use a place-holder
+// The renamer fills in the final value
+fbind
+    :
+    (qvar '=' exp)
+    | qvar
+    ;
+
+// -------------------------------------------
+
+
+
+dbinds
+    :
+    dbind (semi+ dbind) semi*
+    ;
+
+dbind
+    :
+    varid '=' exp
+    ;
+
 
 
 
@@ -1254,20 +1288,6 @@ th_qquasiquote
     '[' qvarid '|'
     ;
 
-fbind
-    :
-    qvar '=' exp
-    ;
-
-dbinds
-    :
-    dbind (semi+ dbind) semi*
-    ;
-
-dbind
-    :
-    varid '=' exp
-    ;
 
 gcon
     :

@@ -377,15 +377,23 @@ decllist_inst
     open decls_inst? close
     ;
 
-
+// Instance body
+// 
 where_inst
     :
     'where' decllist_inst
     ;
 
+// Declarations in binding groups other than classes and instances
+// 
 decls
     :
-    open ((decl semi+)* decl semi*)? close
+    (decl semi+)* decl semi*
+    ;
+
+decllist
+    :
+    open decls? close
     ;
 
 decl
@@ -836,8 +844,8 @@ funlhs
 
 rhs
     :
-    ('=' exp ('where' decls)?)
-    | (gdrhs ('where' decls)?);
+    ('=' exp ('where' decllist)?)
+    | (gdrhs ('where' decllist)?);
 
 gdrhs
     :
@@ -857,7 +865,7 @@ guards
 guard
     :
     pat '<-' infixexp
-    | 'let' decls
+    | 'let' decllist
     | infixexp
     ;
 
@@ -893,7 +901,7 @@ infixexp
 lexp
     :
     ('\\' apat+ '->' exp)
-    | ('let' decls 'in' exp)
+    | ('let' decllist 'in' exp)
     | ({LambdaCase}? LCASE alts)
     | ('if' exp semi? 'then' exp semi? 'else' exp)
     | ({MultiWayIf}? 'if' ifgdpats)
@@ -956,7 +964,7 @@ cvtopdecls0
 qual
     :
     (pat '<-' exp)
-    | ('let' decls)
+    | ('let' decllist)
     | exp
     ;
 
@@ -968,8 +976,8 @@ alts
 
 alt
     :
-    (pat '->' exp ('where' decls)?)
-    | (pat gdpats ('where' decls)?)
+    (pat '->' exp ('where' decllist)?)
+    | (pat gdpats ('where' decllist)?)
     ;
 
 gdpats

@@ -97,6 +97,8 @@ cname
     var | con
     ;
 
+// -------------------------------------------
+// Top-Level Declarations
 topdecls : (topdecl semi+| NEWLINE | semi)+;
 
 topdecl

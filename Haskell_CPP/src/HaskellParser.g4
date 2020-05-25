@@ -504,8 +504,8 @@ stringlist
 
 fdecl
     :
-    ('import' callconv safety? impent var '::' type)
-    | ('export' callconv expent var '::' type)
+    ('import' callconv safety? fspec)
+    | ('export' callconv fspec)
     ;
 
 callconv
@@ -513,8 +513,6 @@ callconv
     'ccall' | 'stdcall' | 'cplusplus' | 'javascript'
     ;
 
-impent : pstring;
-expent : pstring;
 safety : 'unsafe' | 'safe' | 'interruptible'; 
 
 fspec
@@ -523,100 +521,7 @@ fspec
     ; 
 
 // -------------------------------------------
-
-
-specs
-    :
-    spec (',' spec)*
-    ;
-
-spec
-    :
-    sig_vars '::' type
-    ;
-
-cdecls
-    :
-    open ((cdecl semi+)* cdecl semi*)? close
-    ;
-
-cdecl
-    :
-    gendecl
-    | ((funlhs | var) rhs)
-    ;
-
-gendecl
-    :
-    // vars '::' (typecontext '=>')? type
-    sig_vars '::' ctype
-    | (fixity (DECIMAL)? ops)
-    ;
-
-ops
-    :
-    op (',' op)*
-    ;
-
-fixity
-    :
-    'infix' | 'infixl' | 'infixr'
-    ;
-
-type
-    :
-    btype
-    | btype '->' ctype
-    ;
-
-typedoc
-    :
-    btype
-    | btype '->' ctypedoc
-    ;
-
-btype
-    :
-    tyapps
-    ;
-
-tyapps
-    :
-    tyapp+
-    ;
-
-tyapp
-    :
-    atype
-    | qtyconop
-    | tyvarop
-    | ('\'' qconop)
-    | ('\'' varop)
-    | unpackedness
-    ;
-
-atype
-    :
-    gtycon
-    | tyvar
-    | '*'
-    | ('{' fielddecls '}')
-    | ('(' ')')
-    | ('(' ktype (',' ktype)* ')')
-    | ('[' ktype ']')
-    | ('(' ktype ')')
-    | ('[' ktype (',' ktype)* ']')
-    | quasiquote
-    | splice_untyped
-    | ('\'' qcon_nowiredlist)
-    | ('\'' '(' ktype (',' ktype)*)
-    | ('\'' '[' ']')
-    | ('\'' '[' ktype (',' ktype)* ']')
-    | ('\'' var)
-    | integer
-    | STRING
-    | '_'
-    ;
+// Type signatures
 
 sigtype
     :
@@ -678,6 +583,86 @@ ctypedoc
     | typedoc
     ;
 
+// In GHC this rule is context
+tycl_context
+    :
+    btype
+    ;
+
+// constr_context rule
+
+// {- Note [GADT decl discards annotations]
+// ~~~~~~~~~~~~~~~~~~~~~
+// The type production for
+
+//     btype `->`         ctypedoc
+//     btype docprev `->` ctypedoc
+
+// add the AnnRarrow annotation twice, in different places.
+
+// This is because if the type is processed as usual, it belongs on the annotations
+// for the type as a whole.
+
+// But if the type is passed to mkGadtDecl, it discards the top level SrcSpan, and
+// the top-level annotation will be disconnected. Hence for this specific case it
+// is connected to the first type too.
+// -}
+
+type
+    :
+    btype
+    | btype '->' ctype
+    ;
+
+typedoc
+    :
+    btype
+    | btype '->' ctypedoc
+    ;
+
+btype
+    :
+    tyapps
+    ;
+
+tyapps
+    :
+    tyapp+
+    ;
+
+tyapp
+    :
+    atype
+    | qtyconop
+    | tyvarop
+    | ('\'' qconop)
+    | ('\'' varop)
+    | unpackedness
+    ;
+
+atype
+    :
+    gtycon
+    | tyvar
+    | '*'
+    | ('{' fielddecls '}')
+    | ('(' ')')
+    | ('(' ktype (',' ktype)* ')')
+    | ('[' ktype ']')
+    | ('(' ktype ')')
+    | ('[' ktype (',' ktype)* ']')
+    | quasiquote
+    | splice_untyped
+    | ('\'' qcon_nowiredlist)
+    | ('\'' '(' ktype (',' ktype)*)
+    | ('\'' '[' ']')
+    | ('\'' '[' ktype (',' ktype)* ']')
+    | ('\'' var)
+    | integer
+    | STRING
+    | '_'
+    ;
+
 inst_type
     :
     sigtype
@@ -686,12 +671,6 @@ inst_type
 deriv_types
     :
     ktypedoc (',' ktypedoc)*
-    ;
-
-// In GHC this rule is context
-tycl_context
-    :
-    btype
     ;
 
 tv_bndrs
@@ -725,10 +704,38 @@ varids0
     tyvar+
     ;
 
+
+// -------------------------------------------
+// Kinds
+
 kind
     :
     ctype
     ;
+
+// {- Note [Promotion]
+//    ~~~~~~~~~~~~~~~~
+
+// - Syntax of promoted qualified names
+// We write 'Nat.Zero instead of Nat.'Zero when dealing with qualified
+// names. Moreover ticks are only allowed in types, not in kinds, for a
+// few reasons:
+//   1. we don't need quotes since we cannot define names in kinds
+//   2. if one day we merge types and kinds, tick would mean look in DataName
+//   3. we don't have a kind namespace anyway
+
+// - Name resolution
+// When the user write Zero instead of 'Zero in types, we parse it a
+// HsTyVar ("Zero", TcClsName) instead of HsTyVar ("Zero", DataName). We
+// deal with this in the renamer. If a HsTyVar ("Zero", TcClsName) is not
+// bounded in the type level, then we look for it in the term level (we
+// change its namespace to DataName, see Note [Demotion] in GHC.Types.Names.OccName).
+// And both become a HsTyVar ("Zero", DataName) after the renamer.
+
+// -}
+
+// -------------------------------------------
+// Datatype declarations
 
 gadt_constrlist
     :
@@ -740,6 +747,12 @@ gadt_constrs
     gadt_constr_with_doc (semi gadt_constr_with_doc)*
     ;
 
+// We allow the following forms:
+//      C :: Eq a => a -> T a
+//      C :: forall a. Eq a => !a -> T a
+//      D { x,y :: a } :: T a
+//      forall a. Eq a => D { x,y :: a } :: T a
+
 gadt_constr_with_doc
     :
     gadt_constr
@@ -748,6 +761,157 @@ gadt_constr_with_doc
 gadt_constr
     :
     con_list '::' sigtypedoc
+    ;
+
+
+// {- Note [Difference in parsing GADT and data constructors]
+// ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+// GADT constructors have simpler syntax than usual data constructors:
+// in GADTs, types cannot occur to the left of '::', so they cannot be mixed
+// with constructor names (see Note [Parsing data constructors is hard]).
+
+// Due to simplified syntax, GADT constructor names (left-hand side of '::')
+// use simpler grammar production than usual data constructor names. As a
+// consequence, GADT constructor names are restricted (names like '(*)' are
+// allowed in usual data constructors, but not in GADTs).
+// -}
+
+// NOT AS IN GHC
+constrs
+    :
+    constr ('|' constr)*
+    ;
+
+// {- Note [Constr variations of non-terminals]
+// ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+// In record declarations we assume that 'ctype' used to parse the type will not
+// consume the trailing docprev:
+
+//   data R = R { field :: Int -- ^ comment on the field }
+
+// In 'R' we expect the comment to apply to the entire field, not to 'Int'. The
+// same issue is detailed in Note [ctype and ctypedoc].
+
+// So, we do not want 'ctype'  to consume 'docprev', therefore
+//     we do not want 'btype'  to consume 'docprev', therefore
+//     we do not want 'tyapps' to consume 'docprev'.
+
+// At the same time, when parsing a 'constr', we do want to consume 'docprev':
+
+//   data T = C Int  -- ^ comment on Int
+//              Bool -- ^ comment on Bool
+
+// So, we do want 'constr_stuff' to consume 'docprev'.
+
+// The problem arises because the clauses in 'constr' have the following
+// structure:
+
+//   (a)  context '=>' constr_stuff   (e.g.  data T a = Ord a => C a)
+//   (b)               constr_stuff   (e.g.  data T a =          C a)
+
+// and to avoid a reduce/reduce conflict, 'context' and 'constr_stuff' must be
+// compatible. And for 'context' to be compatible with 'constr_stuff', it must
+// consume 'docprev'.
+
+// So, we want 'context'  to consume 'docprev', therefore
+//     we want 'btype'    to consume 'docprev', therefore
+//     we want 'tyapps'   to consume 'docprev'.
+
+// Our requirements end up conflicting: for parsing record types, we want 'tyapps'
+// to leave 'docprev' alone, but for parsing constructors, we want it to consume
+// 'docprev'.
+
+// As the result, we maintain two parallel hierarchies of non-terminals that
+// either consume 'docprev' or not:
+
+//   tyapps      constr_tyapps
+//   btype       constr_btype
+//   context     constr_context
+//   ...
+
+// They must be kept identical except for their treatment of 'docprev'.
+
+// -}
+
+constr
+    :
+    (con ('!'? atype)*)
+    | ((btype | ('!' atype)) conop (btype | ('!' atype)))
+    | (con '{' fielddecls? '}')
+    ;
+
+fielddecls
+    :
+    fielddecl (',' fielddecl)*
+    ;
+
+fielddecl
+    :
+    sig_vars '::' ctype
+    ;
+
+// A list of one or more deriving clauses at the end of a datatype
+derivings
+    :
+    deriving+
+    ;
+
+// The outer Located is just to allow the caller to
+// know the rightmost extremity of the 'deriving' clause
+deriving
+    :
+    ('deriving' deriv_clause_types)
+    | ('deriving' deriv_strategy_no_via deriv_clause_types)
+    | ('deriving' deriv_clause_types {DerivingVia}? deriv_strategy_via)
+    ;
+
+deriv_clause_types
+    :
+    qtycon
+    | '(' ')'
+    | '(' deriv_types ')'
+    ;
+
+// -------------------------------------------
+
+
+specs
+    :
+    spec (',' spec)*
+    ;
+
+spec
+    :
+    sig_vars '::' type
+    ;
+
+cdecls
+    :
+    open ((cdecl semi+)* cdecl semi*)? close
+    ;
+
+cdecl
+    :
+    gendecl
+    | ((funlhs | var) rhs)
+    ;
+
+gendecl
+    :
+    // vars '::' (typecontext '=>')? type
+    sig_vars '::' ctype
+    | (fixity (DECIMAL)? ops)
+    ;
+
+ops
+    :
+    op (',' op)*
+    ;
+
+fixity
+    :
+    'infix' | 'infixl' | 'infixr'
     ;
 
 gtycon
@@ -800,52 +964,12 @@ simpletype
     tycon tyvar*
     ;
 
-constrs
-    :
-    constr ('|' constr)*
-    ;
-
-constr
-    :
-    (con ('!'? atype)*)
-    | ((btype | ('!' atype)) conop (btype | ('!' atype)))
-    | (con '{' (fielddecl (',' fielddecl)* )? '}')
-    ;
-
 newconstr
     :
     (con atype)
     | (con '{' var '::' type '}')
     ;
 
-fielddecls
-    :
-    fielddecl (',' fielddecl)*
-    ;
-
-fielddecl
-    :
-    sig_vars '::' ctype
-    ;
-
-derivings
-    :
-    deriving+
-    ;
-
-deriving
-    :
-    ('deriving' deriv_clause_types)
-    | ('deriving' deriv_strategy_no_via deriv_clause_types)
-    | ('deriving' deriv_clause_types {DerivingVia}? deriv_strategy_via)
-    ;
-
-deriv_clause_types
-    :
-    qtycon
-    | '(' ')'
-    | '(' deriv_types ')'
-    ;
 
 inst
     :

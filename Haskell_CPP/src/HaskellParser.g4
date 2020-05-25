@@ -109,6 +109,9 @@ topdecl
     | {StandaloneDeriving}? standalone_deriving
     | ('default' '(' (type (',' type)*)? ')' )
     | ('foreign' fdecl)
+    // | ('{-#' 'DEPRECATED' deprecations '#-}')
+    // | ('{-#' 'WARNING' warnings '#-}')
+    | ('{-#' 'RULES' rules? '#-}')
     | decl
     ;
 
@@ -158,7 +161,7 @@ inst_decl
 
 overlap_pragma
     :
-    '{-#' 'OVERLAPPABLE' '#-}'
+      '{-#' 'OVERLAPPABLE' '#-}'
     | '{-#' 'OVERLAPPING' '#-}'
     | '{-#' 'OVERLAPS' '#-}'
     | '{-#' 'INCOHERENT' '#-}'
@@ -184,6 +187,51 @@ decl
     | ((funlhs | pat) rhs)
     | semi+
     ;
+
+// -------------------------------------------
+// Transformation Rules
+
+rules
+    :
+    sig_rule (';' sig_rule)* ';'?
+    ;
+
+sig_rule
+    :
+    pstring rule_activation? rule_foralls? infixexp '=' exp
+    ;
+
+rule_activation_marker
+    :
+    '~' | varsym
+    ;
+
+rule_activation
+    :
+    ('[' integer ']')
+    | ('[' rule_activation_marker integer ']')
+    | ('[' rule_activation_marker ']')
+    ;
+
+rule_foralls
+    :
+    ('forall' rule_vars? '.' ('forall' rule_vars? '.')?)
+    ;
+
+rule_vars
+    :
+    rule_var+
+    ;
+
+rule_var
+    :
+    varid
+    | ('(' varid '::' ctype ')')
+    ;
+
+// -------------------------------------------
+
+
 
 specs
     :
@@ -222,6 +270,11 @@ gendecl
     sig_vars '::' ctype
     | (fixity (DECIMAL)? ops)
     ;
+
+// -------------------------------------------
+// Nested declaration
+
+// Declaration in class bodies
 
 decl_cls
     :
@@ -440,6 +493,8 @@ gtycon
     | ( '(' ',' '{' ',' '}' ')' )
     ;
 
+// Family result/return kind signatures
+
 opt_kind_sig
     :
     '::' kind
@@ -486,6 +541,9 @@ capi_ctype
     ('{-#' 'CTYPE' STRING STRING '#-}')
     | ('{-#' 'CTYPE' STRING '#-}')
     ;
+
+// -------------------------------------------
+// Stand-alone deriving
 
 standalone_deriving
     :

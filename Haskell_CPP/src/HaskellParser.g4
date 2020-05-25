@@ -1029,9 +1029,45 @@ guard
     ;
 
 // -------------------------------------------
+// Case alternatives
+
+alts
+    :
+    (open (alt semi*)+ close)
+    | ({EmptyCase}? open close)
+    ;
+
+alt : pat alt_rhs ;
+
+alt_rhs
+    :
+    ralt wherebinds?
+    ;
+
+ralt
+    :
+    ('->' exp)
+    | gdpats
+    ;
 
 
+gdpats
+    :
+    gdpat+
+    ;
 
+// In ghc parser on GitLab second rule is 'gdpats close'
+// Unclearly, is there possible errors with this implemmentation
+ifgdpats
+    :
+    '{' gdpats '}'
+    | gdpats
+    ;
+
+gdpat
+    :
+    '|' guards '->' exp
+    ;
 
 
 
@@ -1163,38 +1199,6 @@ qual
     (pat '<-' exp)
     | ('let' decllist)
     | exp
-    ;
-
-alts
-    :
-    (open (alt semi*)+ close)
-    | ({EmptyCase}? open close)
-    ;
-
-alt
-    :
-    (pat '->' exp ('where' decllist)?)
-    | (pat gdpats ('where' decllist)?)
-    ;
-
-gdpats
-    :
-    gdpat+
-    ;
-
-// In ghc parser on GitLab second rule is 'gdpats close'
-// Unclearly possible errors with this implemmentation
-
-// Now extension is always works (follow semantic predicate in 'lexp' rule)
-ifgdpats
-    :
-    '{' gdpats '}'
-    | gdpats
-    ;
-
-gdpat
-    :
-    '|' guards '->' exp
     ;
 
 stmts

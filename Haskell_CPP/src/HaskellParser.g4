@@ -1041,11 +1041,11 @@ aexp2
     | pstring
     | integer
     | pfloat
-    | ('(' texp? ')')
+    | ('(' texp ')')
     | ('(' tup_exprs ')')
     // | ('(#' texp '#)')
     // | ('(#' tup_exprs '#)')
-    | ('[' list? ']')
+    | ('[' list ']')
     | '_'
     // Template Haskell
     | splice_untyped
@@ -1374,18 +1374,35 @@ name_var
 // There are two different productions here as lifted list constructors
 // are parsed differently.
 
-qcon   : qconid  | ( '(' gconsym ')');
+qcon_nowiredlist : gen_qcon | sysdcon_nolist;
 
-con    : conid   | ( '(' consym ')' );
+// qcon   : qconid  | ( '(' gconsym ')');
+qcon  : gen_qcon | sysdcon;
 
-con_list 
-    : 
-    con (',' con)*
+gen_qcon : qconid | ( '(' qconsym ')' ); 
+
+con    : conid   | ( '(' consym ')' ) | sysdcon;
+
+con_list : con (',' con)*;
+
+sysdcon_nolist
+    :
+    ('(' ')')
+    | ('(' commas ')')
+    | ('(#' '#)')
+    | ('(#' commas '#)')
+    ;
+
+sysdcon
+    :
+    sysdcon_nolist
+    | ('[' ']')
     ;
 
 conop  : consym  | ('`' conid '`')	 ;
 
 qconop : gconsym | ('`' qconid '`')	 ;
+
 
 // -------------------------------------------
 // Type constructors (CHECK!!!)
@@ -1621,19 +1638,7 @@ gconsym: ':'  	 | qconsym			 ;
 
 
 
-qcon_nowiredlist
-    :
-    qcon
-    | sysdcon_nolist
-    ;
 
-sysdcon_nolist
-    :
-    ('(' ')')
-    | ('(' ','+ ')')
-    // | ('(#' '#)')
-    // | ('(#' ','+ '#)')
-    ;
 
 special : '(' | ')' | ',' | ';' | '[' | ']' | '`' | '{' | '}';
 

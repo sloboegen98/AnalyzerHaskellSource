@@ -34,19 +34,8 @@ int main(int argc, char *argv[]) {
     HaskellParser parser(&tokens);
 
     antlr4::tree::ParseTree* tree = parser.module();
-
-
-#ifdef VISITOR
-    HaskellVisitor* visitor = new HaskellVisitor(); 
-    visitor->visit(tree);
-    auto tns = visitor->get_type_notations();
-
-    for (auto &t : tns) {
-        std::cout << t << std::endl;
-    }
-#endif
     
-    // std::cout << tree->toStringTree(&parser) << std::endl;
+    std::cout << tree->toStringTree(&parser) << std::endl;
 
     return 0;
 }

@@ -1566,6 +1566,7 @@ conop  : consym  | ('`' conid '`')	 ;
 
 qconop : gconsym | ('`' qconid '`')	 ;
 
+gconsym: ':'  	 | qconsym			 ;
 
 // -------------------------------------------
 // Type constructors (Be careful!!!)
@@ -1653,6 +1654,10 @@ tyvarop: '`' tyvarid '`';
 
 tyvarid : varid;
 
+tycls   : conid;
+
+qtycls  : (modid '.')? tycls;
+
 // -------------------------------------------
 // Variables
 
@@ -1713,7 +1718,7 @@ consym : ':' ascSymbol*;
 // -------------------------------------------
 // Literals
 
-literal : integer | pfloat | pchar | pstring;
+literal : (integer | pfloat | pchar | pstring) '#'*;
 
 // -------------------------------------------
 // Layout
@@ -1733,70 +1738,12 @@ bars : '|'+;
 
 // -------------------------------------------
 
-typecontext
-    :
-    cls
-    | ( '(' cls (',' cls)* ')' )
-    ;
-
-cls
-    :
-    (conid varid)
-    // Flexible Context and MultiParamTypeClasses
-    | (conid multiparams)
-    | ( qtycls '(' tyvar (atype (',' atype)*) ')' )
-    ;
-
-multiparams
-    :
-    multiparam+
-    ;
-
-multiparam
-    :
-    qvarid
-    | qconid
-    ;
-
-simpletype
-    :
-    tycon tyvar*
-    ;
-
-newconstr
-    :
-    (con atype)
-    | (con '{' var '::' type '}')
-    ;
-
-funlhs
-    :
-    (var apat+)
-    | (pat varop pat)
-    | ( '(' funlhs ')' apat+)
-    ;
-
-gcon
-    :
-    ('(' ')')
-    | ('[' ']')
-    | ('(' (',')+ ')')
-    | qcon
-    ;
-
-gconsym: ':'  	 | qconsym			 ;
-
 special : '(' | ')' | ',' | ';' | '[' | ']' | '`' | '{' | '}';
 
 symbol: ascSymbol;
 ascSymbol: '!' | '#' | '$' | '%' | '&' | '*' | '+'
         | '.' | '/' | '<' | '=' | '>' | '?' | '@'
         | '\\' | '^' | '|' | '~' | ':' ;
-
-
-tycls : conid;
-
-qtycls : (modid '.')? tycls;
 
 integer
     :

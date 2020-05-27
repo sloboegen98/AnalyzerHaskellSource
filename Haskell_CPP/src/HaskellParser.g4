@@ -33,7 +33,7 @@ pragma
 
 language_pragma
     :
-    '{-#' 'LANGUAGE'  extension (',' extension)* '#-}' semi?
+    '{-#' LANGUAGE  extension (',' extension)* '#-}' semi?
     ;
 
 options_ghc
@@ -1686,9 +1686,9 @@ qvarsym_no_minus
     | qvarsym
     ;
 
-varsym : varsym_no_minus | '-';
+varsym : (varsym_no_minus | '-')+;
 
-varsym_no_minus : ascSymbol+;
+varsym_no_minus : ascSymbol;
 
 // These special_ids are treated as keywords in various places,
 // but as ordinary ids elsewhere.   'special_id' collects all these

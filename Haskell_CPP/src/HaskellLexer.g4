@@ -67,7 +67,7 @@ STOCK         : 'stock'            ;
 ANYCLASS      : 'anyclass'         ;
 VIA           : 'via'              ;
 
-LANGUAGE      : 'LANGUAGE'         ;
+LANGUAGE      : ('LANGUAGE' | 'language' | 'Language');
 OPTIONS_GHC   : 'OPTIONS_GHC'      ;
 OPTIONS       : 'OPTIONS'          ;
 INLINE        : 'INLINE'           ;

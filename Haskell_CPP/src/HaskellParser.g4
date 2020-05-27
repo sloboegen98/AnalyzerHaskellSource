@@ -1692,7 +1692,7 @@ varsym_no_minus : ascSymbol+;
 
 // These special_ids are treated as keywords in various places,
 // but as ordinary ids elsewhere.   'special_id' collects all these
-// except 'unsafe', 'interruptible', 'forall', 'family', 'role', 'stock', and
+// except 'forall', 'family', 'role', 'stock', and
 // 'anyclass', whose treatment differs depending on context
 special_id
     : 'as'
@@ -1706,6 +1706,8 @@ special_id
     | 'stock'
     | 'anyclass'
     | 'via'
+    | 'unsafe'
+    | 'interruptible'
     ;
 
 // -------------------------------------------

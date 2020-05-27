@@ -1153,7 +1153,7 @@ exp
 
 infixexp
     :
-    exp10 (qop exp10p)*
+    (exp10 (qop exp10p)*)
     ;
 
 exp10p
@@ -1163,7 +1163,11 @@ exp10p
 
 exp10
     :
-    '-'? fexp
+    ('-'? fexp)
+    | ('{-#' 'SCC' pstring '#-}' '-'? fexp)
+    | ('{-#' 'SCC' varid '#-}' '-'? fexp)
+    | ('{-#' 'GENERATED' pstring integer ':' integer '-' integer ':' integer '#-}' '-'? fexp)
+    | ('{-#' 'CORE' pstring '-'? fexp)
     ;
 
 fexp
@@ -1375,7 +1379,7 @@ guard
 alts
     :
     (open (alt semi*)+ close)
-    | (open close)
+    | (open semi* close)
     ;
 
 alt : pat alt_rhs ;

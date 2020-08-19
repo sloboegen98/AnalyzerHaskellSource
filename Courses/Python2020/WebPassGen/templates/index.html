@@ -1,0 +1,29 @@
+{% extends "base.html" %}
+
+{% block content %}
+<body>
+   <main class="jumbotron">
+         <h2>Сейчас мы сгенерируем для Вас пароль!</h2>
+         <form action="/" method="POST">
+            <div class="container">
+               <div class="form-digits">
+                  <input type="checkbox" name="digitChecker">
+                  <label class="form-digits-label" for="digitChecker">Используем цифры?</label>
+               </div>
+               <div class="form-symbols">
+                  <input type="checkbox" name="symbolChecker">
+                  <label class="form-symbols-label" for="symbolChecker">Используем символы, например, знаки препинания, %, @ и  т.д?</label>
+               </div>
+               <div class="form-length">
+                  <label for="pswdLength">Введите длину пароля</label>
+                  <input type="text" class="form-length" name="pswdLength" id="pswdLength" placeholder="Длина пароля">
+               </div>
+            <button type="submit" class="btn btn-primary">Сгенерировать!</button>
+            {% if password %}
+                  <p>Сгенерированный пароль {{ password }}
+            {% endif %}
+         </form>
+      </div>
+   </main>
+</body>
+{% endblock %}

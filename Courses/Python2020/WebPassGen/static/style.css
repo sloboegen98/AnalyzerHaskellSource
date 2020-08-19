@@ -1,0 +1,16 @@
+/* Custom page CSS
+-------------------------------------------------- */
+/* Not required for template or sticky footer method. */
+
+.container {
+  width: auto;
+  max-width: 680px;
+  padding: 0 15px;
+}
+
+header{
+	display: flex; 
+  justify-content: space-around;
+  flex-direction: column;
+  align-items: flex-start;
+}

@@ -18,3 +18,6 @@ RUN cd antlr4/runtime/Cpp && \
 
 RUN mkdir Haskell_CPP
 COPY ./Haskell_CPP /Haskell_CPP
+
+RUN cd /Haskell_CPP/ && make && cd test/ 
+CMD ["sh", "run.sh"]

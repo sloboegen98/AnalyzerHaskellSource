@@ -5,4 +5,4 @@ services:
 
 before_install:
     - docker build -t antlrhaskell .
-    - docker run antlrhaskell -c "cd Haskell_CPP/test/ && ./run.sh"
+    - docker run --rm antlrhaskell

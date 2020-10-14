@@ -18,7 +18,10 @@ parser:
 compile:
 	g++ src/*.cpp -g $(INCLUDE) $(LINK) $(LIBPATH) -std=c++17 -o parsertestexe
 
+test:
+	cd test/ && ./run.sh
+
 clean:
 	rm -rf src/HaskellLexer.cpp src/HaskellLexer.h src/HaskellParser.cpp src/HaskellParser.h src/*.tokens src/*.interp result/
 
-.PHONY: all clean test lexer parser
+.PHONY: all clean test lexer parser test

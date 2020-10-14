@@ -25,4 +25,3 @@ RUN ldconfig -v
 WORKDIR /Haskell_CPP/
 
 CMD ["make", "test"]
-

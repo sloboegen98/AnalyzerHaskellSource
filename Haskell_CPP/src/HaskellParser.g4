@@ -33,7 +33,7 @@ pragma
 
 language_pragma
     :
-    '{-#' 'LANGUAGE'  extension (',' extension)* '#-}' semi?
+    '{-#' LANGUAGE  extension (',' extension)* '#-}' semi?
     ;
 
 options_ghc
@@ -1153,7 +1153,7 @@ exp
 
 infixexp
     :
-    exp10 (qop exp10p)*
+    (exp10 (qop exp10p)*)
     ;
 
 exp10p
@@ -1163,7 +1163,11 @@ exp10p
 
 exp10
     :
-    '-'? fexp
+    ('-'? fexp)
+    | ('{-#' 'SCC' pstring '#-}' '-'? fexp)
+    | ('{-#' 'SCC' varid '#-}' '-'? fexp)
+    | ('{-#' 'GENERATED' pstring integer ':' integer '-' integer ':' integer '#-}' '-'? fexp)
+    | ('{-#' 'CORE' pstring '-'? fexp)
     ;
 
 fexp
@@ -1375,7 +1379,7 @@ guard
 alts
     :
     (open (alt semi*)+ close)
-    | (open close)
+    | (open semi* close)
     ;
 
 alt : pat alt_rhs ;
@@ -1682,13 +1686,13 @@ qvarsym_no_minus
     | qvarsym
     ;
 
-varsym : varsym_no_minus | '-';
+varsym : (varsym_no_minus | '-')+;
 
-varsym_no_minus : ascSymbol+;
+varsym_no_minus : ascSymbol;
 
 // These special_ids are treated as keywords in various places,
 // but as ordinary ids elsewhere.   'special_id' collects all these
-// except 'unsafe', 'interruptible', 'forall', 'family', 'role', 'stock', and
+// except 'forall', 'family', 'role', 'stock', and
 // 'anyclass', whose treatment differs depending on context
 special_id
     : 'as'
@@ -1702,6 +1706,8 @@ special_id
     | 'stock'
     | 'anyclass'
     | 'via'
+    | 'unsafe'
+    | 'interruptible'
     ;
 
 // -------------------------------------------

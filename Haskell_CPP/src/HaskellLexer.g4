@@ -67,7 +67,7 @@ STOCK         : 'stock'            ;
 ANYCLASS      : 'anyclass'         ;
 VIA           : 'via'              ;
 
-LANGUAGE      : 'LANGUAGE'         ;
+LANGUAGE      : ('LANGUAGE' | 'language' | 'Language');
 OPTIONS_GHC   : 'OPTIONS_GHC'      ;
 OPTIONS       : 'OPTIONS'          ;
 INLINE        : 'INLINE'           ;
@@ -76,7 +76,9 @@ SPECIALISE    : 'SPECIALISE'       ;
 SPECINLINE    : 'SPECIALISE_INLINE';
 SOURCE        : 'SOURCE'           ;
 RULES         : 'RULES'            ;
+CORE          : 'CORE'             ;
 SCC           : 'SCC'              ;
+GENERATED     : 'GENERATED'        ;
 DEPRECATED    : 'DEPRECATED'       ;
 WARNING       : 'WARNING'          ;
 UNPACK        : 'UNPACK'           ;

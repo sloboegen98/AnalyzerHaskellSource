@@ -1,9 +1,6 @@
-ANTLR 	= java -Xmx500M -cp "/usr/local/lib/antlr-4.7.1-complete.jar:$(CLASSPATH)" org.antlr.v4.Tool
-GRUN    = java -Xmx500M -cp "/usr/local/lib/antlr-4.7.1-complete.jar:$(CLASSPATH)" org.antlr.v4.gui.TestRig
+ANTLR 	= java -Xmx500M -cp "/usr/local/lib/antlr-4.8-complete.jar:$(CLASSPATH)" org.antlr.v4.Tool
 LEXER   = HaskellLexer
 PARSER  = HaskellParser
-TEST 	= file.txt
-ROOT	= module
 LIBPATH = -L/usr/local/lib
 LINK 	= -lantlr4-runtime
 INCLUDE = -I/usr/local/include/antlr4-runtime 
@@ -21,10 +18,10 @@ parser:
 compile:
 	g++ src/*.cpp -g $(INCLUDE) $(LINK) $(LIBPATH) -std=c++17 -o parsertestexe
 
-grun:
-	$(GRUN) $(GRAMMAR) $(ROOT) -gui $(TEST) 
+test:
+	cd test/ && ./run.sh
 
 clean:
 	rm -rf src/HaskellLexer.cpp src/HaskellLexer.h src/HaskellParser.cpp src/HaskellParser.h src/*.tokens src/*.interp result/
 
-.PHONY: all clean test
+.PHONY: all clean test lexer parser test
